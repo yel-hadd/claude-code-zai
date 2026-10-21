@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Switch Claude Code to the z.ai GLM Coding Plan (GLM-5.3) in One Command</title>
-<meta name="description" content="Moving from a Claude subscription to the z.ai GLM Coding Plan? Run Claude Code on GLM-5.3 with 1M context, web search, vision and a quota status line. One-command setup for Linux, macOS and Windows, side by side with your existing claude.">
+<title>Run Claude Code on the z.ai GLM Coding Plan in one command</title>
+<meta name="description" content="Leaving a Claude subscription? claude-z runs Claude Code on GLM-5.3 with 1M context, web search and a quota status line, on Linux, macOS and Windows.">
 <link rel="canonical" href="https://yel-hadd.github.io/claude-code-zai/">
 <meta name="author" content="Yassine El Haddad">
 <meta property="og:type" content="article">
@@ -95,6 +95,14 @@
     },
     {
       "@type": "Question",
+      "name": "Can I use Claude Code without a Claude subscription?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Claude Code can talk to any Anthropic-compatible endpoint, and z.ai runs one at https://api.z.ai/api/anthropic. With a GLM Coding Plan API key, claude-z runs Claude Code on GLM-5.3 instead of Claude. You still need Claude Code installed, but not an Anthropic account."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "How do I use Claude Code with z.ai?",
       "acceptedAnswer": {
         "@type": "Answer",
@@ -122,7 +130,7 @@
       "name": "How do I check my z.ai GLM Coding Plan quota?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Three ways: the status line at the bottom of claude-z, the zai-usage command in any terminal, and /zai-usage inside a session. All three read z.ai's quota endpoint, https://api.z.ai/api/monitor/usage/quota/limit, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs; it was checked against a live Pro plan in October 2026."
+        "text": "Three ways: the status line at the bottom of claude-z, the zai-usage command in any terminal, and /zai-usage inside a session. All three read z.ai's quota endpoint, https://api.z.ai/api/monitor/usage/quota/limit, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs. On my Pro plan in October 2026 it reported 12,000 credits per 5-hour window and 60,000 per week."
       }
     },
     {
@@ -213,15 +221,15 @@
 <body>
 <header>
   <h1>Switch Claude Code to the z.ai GLM Coding Plan in one command</h1>
-  <p class="meta">Last updated <time datetime="2026-10-21">2026-10-21</time> · by <a href="https://github.com/yel-hadd">Yassine El Haddad</a> · <a href="https://github.com/yel-hadd/claude-code-zai">Open source on GitHub</a> · Not affiliated with Anthropic or Z.ai</p>
+  <p class="meta">By <a href="https://github.com/yel-hadd">Yassine El Haddad</a>, updated <time datetime="2026-10-21">October 21, 2026</time>. The <a href="https://github.com/yel-hadd/claude-code-zai">code is on GitHub</a> under the MIT license. Not affiliated with Anthropic or Z.ai.</p>
 </header>
 <main>
-<p class="lead">Keep using <a href="https://code.claude.com/docs">Claude Code</a>, but run it on the <a href="https://docs.z.ai/devpack/overview">z.ai GLM Coding Plan</a> instead of, or next to, your Claude subscription. One installer adds a <code>claude-z</code> command with GLM-5.3 and its full 1M-token context, z.ai's web search, web reader and vision tools, and a status line showing your 5-hour and weekly quota. Your normal <code>claude</code> keeps working.</p>
+<p class="lead">Keep using <a href="https://code.claude.com/docs">Claude Code</a>, but run it on the <a href="https://docs.z.ai/devpack/overview">z.ai GLM Coding Plan</a> instead of your Claude subscription, or next to it. One installer adds a <code>claude-z</code> command that uses GLM-5.3 with its full 1M-token context. It also wires up z.ai's web search and image tools, and puts your 5-hour and weekly quota in the status line. Your normal <code>claude</code> keeps working exactly as before.</p>
 <div class="cta">
-  <a class="btn primary" href="https://z.ai/subscribe?ic=BY27XR8RLD" rel="sponsored noopener">Get the GLM Coding Plan: 10% off your first subscription</a>
+  <a class="btn primary" href="https://z.ai/subscribe?ic=BY27XR8RLD" rel="sponsored noopener">Get 10% off the GLM Coding Plan</a>
   <a class="btn" href="#quick-start">Install claude-z</a>
 </div>
-<p class="note">The first button is a referral link: see the <a href="#referral-disclosure">disclosure</a>. Plain link: <a href="https://z.ai/subscribe">z.ai/subscribe</a>.</p>
+<p class="note">The discount applies to your first subscription if you're new to z.ai. It's a referral link (<a href="#referral-disclosure">disclosure</a>); the plain link is <a href="https://z.ai/subscribe">z.ai/subscribe</a>.</p>
 <pre><code>glm-5.3[1m] · ctx 12% · 5h 8% · wk 41%</code></pre>
 
 <h2 id="switching">Switching from a Claude subscription</h2>
@@ -567,8 +575,8 @@ claude-z mcp add -s user zai-mcp-server -e 'Z_AI_API_KEY=${ZAI_API_KEY}' -e Z_AI
 <p>In PowerShell, write the separator as <code>'--'</code> and use <code>cmd /c npx</code> for the last one. PowerShell silently drops a bare <code>--</code>.</p>
 
 <div class="box">
-  <p><strong>Ready to try GLM-5.3 in Claude Code?</strong> Get a GLM Coding Plan, run one command, and keep your existing <code>claude</code> as a fallback.</p>
-  <div class="cta"><a class="btn primary" href="https://z.ai/subscribe?ic=BY27XR8RLD" rel="sponsored noopener">Get the GLM Coding Plan: 10% off</a><a class="btn" href="#quick-start">Install claude-z</a></div>
+  <p><strong>Compare them on your own code.</strong> Give <code>claude</code> and <code>claude-z</code> the same task this week and see which one you'd pay for. Your Claude setup stays as it is, and <code>install.sh --uninstall</code> removes <code>claude-z</code> in one step.</p>
+  <div class="cta"><a class="btn primary" href="https://z.ai/subscribe?ic=BY27XR8RLD" rel="sponsored noopener">Get 10% off the GLM Coding Plan</a><a class="btn" href="#quick-start">Install claude-z</a></div>
 </div>
 
 <h2 id="faq">FAQ</h2>
@@ -577,6 +585,8 @@ claude-z mcp add -s user zai-mcp-server -e 'Z_AI_API_KEY=${ZAI_API_KEY}' -e Z_AI
 <p>Try it before deciding. <code>claude-z</code> runs alongside your normal <code>claude</code>, so you can give both the same tasks and compare. The main differences are the model (GLM-5.3 instead of Claude), the usage limits, and who processes your code. Everything else in Claude Code works the same.</p>
 <h3 id="how-do-i-get-a-glm-coding-plan">How do I get a GLM Coding Plan?</h3>
 <p>Subscribe on z.ai, then create an API key in your account. If you sign up through an invite link such as <a href="https://z.ai/subscribe?ic=BY27XR8RLD" rel="sponsored noopener">this referral link</a>, z.ai's campaign rules (October 2026) give new subscribers 10% off their first GLM Coding Plan order.</p>
+<h3 id="can-i-use-claude-code-without-a-claude-subscription">Can I use Claude Code without a Claude subscription?</h3>
+<p>Yes. Claude Code can talk to any Anthropic-compatible endpoint, and z.ai runs one at <code>https://api.z.ai/api/anthropic</code>. With a GLM Coding Plan API key, <code>claude-z</code> runs Claude Code on GLM-5.3 instead of Claude. You still need Claude Code installed, but not an Anthropic account.</p>
 <h3 id="how-do-i-use-claude-code-with-z-ai">How do I use Claude Code with z.ai?</h3>
 <p>Point Claude Code at z.ai's Anthropic-compatible endpoint, <code>https://api.z.ai/api/anthropic</code>, and pass your GLM Coding Plan key as <code>ANTHROPIC_AUTH_TOKEN</code>. This repo wraps those settings in a <code>claude-z</code> command so they only apply when you want them, and your normal Claude Code login keeps working.</p>
 <h3 id="why-does-claude-code-say-model-glm-5-3-isn-t-recognized-context-assumed-to-be-20">Why does Claude Code say "Model glm-5.3 isn't recognized · context assumed to be 200k tokens"?</h3>
@@ -584,7 +594,7 @@ claude-z mcp add -s user zai-mcp-server -e 'Z_AI_API_KEY=${ZAI_API_KEY}' -e Z_AI
 <h3 id="does-glm-5-3-get-the-full-1m-context-in-claude-code">Does GLM-5.3 get the full 1M context in Claude Code?</h3>
 <p>Yes, with the <code>[1m]</code> model names. Tested on Claude Code 2.1.301 and later, which report <code>contextWindow: 1000000</code> for <code>glm-5.3[1m]</code>. Without the suffix, Claude Code assumes 200k and compacts the conversation far too early.</p>
 <h3 id="how-do-i-check-my-z-ai-glm-coding-plan-quota">How do I check my z.ai GLM Coding Plan quota?</h3>
-<p>Three ways: the status line at the bottom of <code>claude-z</code>, the <code>zai-usage</code> command in any terminal, and <code>/zai-usage</code> inside a session. All three read z.ai's quota endpoint, <code>https://api.z.ai/api/monitor/usage/quota/limit</code>, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs; it was checked against a live Pro plan in October 2026.</p>
+<p>Three ways: the status line at the bottom of <code>claude-z</code>, the <code>zai-usage</code> command in any terminal, and <code>/zai-usage</code> inside a session. All three read z.ai's quota endpoint, <code>https://api.z.ai/api/monitor/usage/quota/limit</code>, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs. On my Pro plan in October 2026 it reported 12,000 credits per 5-hour window and 60,000 per week.</p>
 <h3 id="how-do-i-check-quota-when-the-limit-is-already-used-up">How do I check quota when the limit is already used up?</h3>
 <p>Use <code>zai-usage</code> in a terminal, or <code>/zai-usage</code> inside <code>claude-z</code>. A normal slash command would fail, because it sends its output to the model, and the model is what's blocked. This repo's <code>/zai-usage</code> is answered by a local <code>UserPromptSubmit</code> hook instead, so it never calls the API.</p>
 <h3 id="what-does-error-1310-weekly-monthly-limit-exhausted-mean">What does error 1310 "Weekly/Monthly Limit Exhausted" mean?</h3>

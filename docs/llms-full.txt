@@ -9,9 +9,9 @@
 
 Run [Claude Code](https://code.claude.com/docs) on the [z.ai GLM Coding Plan](https://docs.z.ai/devpack/overview) with one command. You get a separate `claude-z` command that uses GLM-5.3 with its full 1M-token context, z.ai's web search, web reader and vision tools, and a status line showing your 5-hour and weekly quota. Your normal `claude` login stays untouched.
 
-**No GLM Coding Plan yet?** [Get one with 10% off your first subscription](https://z.ai/subscribe?ic=BY27XR8RLD). That's a referral link; see the [disclosure](#referral-disclosure).
+No GLM Coding Plan yet? [Get 10% off your first subscription](https://z.ai/subscribe?ic=BY27XR8RLD) (referral link, see the [disclosure](#referral-disclosure)).
 
-**Last updated:** 2026-10-21 · **Guide:** [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/) · Not affiliated with Anthropic or Z.ai.
+Last updated October 21, 2026. The full guide is at [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/). This project isn't affiliated with Anthropic or Z.ai.
 
 ```
 glm-5.3[1m] · ctx 12% · 5h 0% · wk 100% ↻Thu 20:47
@@ -33,7 +33,7 @@ curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/ins
 irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex
 ```
 
-The installer asks for your key (hidden input), then open a new terminal and run `claude-z`. Prefer to let an AI agent do it? Paste [SETUP_PROMPT.md](SETUP_PROMPT.md) into Claude Code, Cursor or any coding agent.
+The installer asks for your key without showing it on screen. When it finishes, open a new terminal and run `claude-z`. Prefer to let an AI agent do it? Paste [SETUP_PROMPT.md](SETUP_PROMPT.md) into Claude Code, Cursor or any coding agent.
 
 Re-running the installer is safe: it updates files and never duplicates anything. To remove it, run `install.sh --uninstall` or `install.ps1 -Uninstall` (your key is kept unless you add `--purge` / `-Purge`).
 
@@ -235,6 +235,9 @@ Try it before deciding. `claude-z` runs alongside your normal `claude`, so you c
 ### How do I get a GLM Coding Plan?
 Subscribe on z.ai, then create an API key in your account. If you sign up through an invite link such as [this referral link](https://z.ai/subscribe?ic=BY27XR8RLD), z.ai's campaign rules (October 2026) give new subscribers 10% off their first GLM Coding Plan order.
 
+### Can I use Claude Code without a Claude subscription?
+Yes. Claude Code can talk to any Anthropic-compatible endpoint, and z.ai runs one at `https://api.z.ai/api/anthropic`. With a GLM Coding Plan API key, `claude-z` runs Claude Code on GLM-5.3 instead of Claude. You still need Claude Code installed, but not an Anthropic account.
+
 ### How do I use Claude Code with z.ai?
 Point Claude Code at z.ai's Anthropic-compatible endpoint, `https://api.z.ai/api/anthropic`, and pass your GLM Coding Plan key as `ANTHROPIC_AUTH_TOKEN`. This repo wraps those settings in a `claude-z` command so they only apply when you want them, and your normal Claude Code login keeps working.
 
@@ -245,7 +248,7 @@ Claude Code doesn't know GLM's context size. Use the model names with the `[1m]`
 Yes, with the `[1m]` model names. Tested on Claude Code 2.1.301 and later, which report `contextWindow: 1000000` for `glm-5.3[1m]`. Without the suffix, Claude Code assumes 200k and compacts the conversation far too early.
 
 ### How do I check my z.ai GLM Coding Plan quota?
-Three ways: the status line at the bottom of `claude-z`, the `zai-usage` command in any terminal, and `/zai-usage` inside a session. All three read z.ai's quota endpoint, `https://api.z.ai/api/monitor/usage/quota/limit`, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs; it was checked against a live Pro plan in October 2026.
+Three ways: the status line at the bottom of `claude-z`, the `zai-usage` command in any terminal, and `/zai-usage` inside a session. All three read z.ai's quota endpoint, `https://api.z.ai/api/monitor/usage/quota/limit`, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs. On my Pro plan in October 2026 it reported 12,000 credits per 5-hour window and 60,000 per week.
 
 ### How do I check quota when the limit is already used up?
 Use `zai-usage` in a terminal, or `/zai-usage` inside `claude-z`. A normal slash command would fail, because it sends its output to the model, and the model is what's blocked. This repo's `/zai-usage` is answered by a local `UserPromptSubmit` hook instead, so it never calls the API.

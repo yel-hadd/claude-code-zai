@@ -7,6 +7,8 @@ Key facts:
 - Models: `glm-5.3[1m]` (main, Opus, Sonnet, subagents) and `glm-5.3-flash[1m]` (Haiku). The `[1m]` suffix plus `CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000` fixes "Model glm-5.3 isn't recognized · context assumed to be 200k tokens".
 - Claude Code's built-in WebSearch does not work through z.ai; use z.ai's web-search-prime and web-reader MCP servers.
 - Quota: `GET https://api.z.ai/api/monitor/usage/quota/limit` (undocumented; Bearer key) returns 5-hour (unit 3) and weekly (unit 6) credit limits with `nextResetTime` in epoch ms.
+- Claude Code works without a Claude subscription or Anthropic account when pointed at z.ai with a GLM Coding Plan key.
+- Observed limits on a Pro plan (October 2026): 12,000 credits per 5-hour window, 60,000 per week.
 - Error 1310 "Weekly/Monthly Limit Exhausted" = HTTP 429; the reset time in the message is UTC+8.
 - Install: `curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.sh | bash` (Linux/macOS) or `irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex` (Windows).
 
