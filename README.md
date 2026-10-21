@@ -5,6 +5,8 @@
 
 Run [Claude Code](https://code.claude.com/docs) on the [z.ai GLM Coding Plan](https://docs.z.ai/devpack/overview) with one command. You get a separate `claude-z` command that uses GLM-5.3 with its full 1M-token context, z.ai's web search, web reader and vision tools, and a status line showing your 5-hour and weekly quota. Your normal `claude` login stays untouched.
 
+**No GLM Coding Plan yet?** [Get one with 10% off your first subscription](https://z.ai/subscribe?ic=BY27XR8RLD). That's a referral link; see the [disclosure](#referral-disclosure).
+
 **Last updated:** 2026-10-21 · **Guide:** [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/) · Not affiliated with Anthropic or Z.ai.
 
 ```
@@ -13,18 +15,18 @@ glm-5.3[1m] · ctx 12% · 5h 0% · wk 100% ↻Thu 20:47
 
 ## Quick start
 
-You need a GLM Coding Plan API key, [Claude Code](https://code.claude.com/docs/en/setup), and `jq` on Linux/macOS. Node.js 22+ is only needed for the vision tool.
+You need a GLM Coding Plan API key ([subscribe here](https://z.ai/subscribe?ic=BY27XR8RLD), referral link), [Claude Code](https://code.claude.com/docs/en/setup), and `jq` on Linux/macOS. Node.js 22+ is only needed for the vision tool.
 
 **Linux and macOS**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.sh | bash
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex
+irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex
 ```
 
 The installer asks for your key (hidden input), then open a new terminal and run `claude-z`. Prefer to let an AI agent do it? Paste [SETUP_PROMPT.md](SETUP_PROMPT.md) into Claude Code, Cursor or any coding agent.
@@ -44,6 +46,28 @@ Re-running the installer is safe: it updates files and never duplicates anything
 | `/zai-usage` | Same report inside a session; works even when the quota is used up |
 
 Your API key is stored in `~/.config/zai/api_key`, readable only by you. Config files reference it as `${ZAI_API_KEY}` and never contain the key itself.
+
+## Switching from a Claude subscription
+
+You don't have to choose: `claude` keeps your Claude Pro or Max subscription, and `claude-z` runs the same Claude Code on z.ai. Try both on the same project, then decide which subscription you need.
+
+| | `claude` on a Claude subscription | `claude-z` on the GLM Coding Plan |
+| --- | --- | --- |
+| Models | Claude (Opus, Sonnet, Haiku) | GLM-5.3 and GLM-5.3-Flash |
+| Context in Claude Code | Depends on model and plan | 1M tokens with `glm-5.3[1m]` |
+| Usage limits | Session and weekly limits | 5-hour and weekly credit limits, shown in the status line |
+| Web search | Built-in WebSearch | z.ai web search and web reader MCP (1.2 credits per call) |
+| Images | Built-in | z.ai vision MCP |
+| Other apps | Claude on web, desktop and mobile | Claude Code, Cline and [other supported coding tools](https://docs.z.ai/devpack/tool/others) |
+| Who processes your code | Anthropic | Z.ai: read their terms and privacy policy first |
+
+To switch:
+
+1. [Subscribe to the GLM Coding Plan](https://z.ai/subscribe?ic=BY27XR8RLD) (referral link, 10% off your first subscription) and create an API key.
+2. Run the one-line installer above and paste the key.
+3. Open a new terminal and run `claude-z` in your project.
+
+GLM-5.3 is a different model from Claude, so results will differ. Run your usual tasks through both before you cancel anything. z.ai's FAQ says Coding Plan subscriptions are non-refundable once purchased.
 
 ## The settings
 
@@ -77,6 +101,7 @@ If you'd rather not run an installer, this is the core of what it installs. The 
 # claude-z: Claude Code on the z.ai GLM Coding Plan (bash and zsh).
 # Sourced from ~/.bashrc or ~/.zshrc. Key lives in ~/.config/zai/api_key (chmod 600).
 # https://github.com/yel-hadd/claude-code-zai
+# No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)
 
 unalias claude-z zai-usage 2>/dev/null
 
@@ -84,6 +109,7 @@ function claude-z {
   local key_file="$HOME/.config/zai/api_key"
   if [ ! -s "$key_file" ]; then
     echo "claude-z: missing z.ai key in $key_file" >&2
+    echo "No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)" >&2
     return 1
   fi
   local key; key="$(cat "$key_file")"
@@ -118,10 +144,12 @@ function zai-usage {
 # claude-z: Claude Code on the z.ai GLM Coding Plan (PowerShell 5.1 and 7).
 # Dot-sourced from $PROFILE. Key lives in ~/.config/zai/api_key (owner-only ACL).
 # https://github.com/yel-hadd/claude-code-zai
+# No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)
 
 function claude-z {
   $keyFile = Join-Path $HOME '.config\zai\api_key'
   if (-not (Test-Path $keyFile) -or -not "$(Get-Content $keyFile -Raw)".Trim()) {
+    Write-Host "No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)"
     Write-Error "claude-z: missing z.ai key in $keyFile"; return
   }
   $key = (Get-Content $keyFile -Raw).Trim()
@@ -200,6 +228,12 @@ In PowerShell, write the separator as `'--'` and use `cmd /c npx` for the last o
 
 ## FAQ
 
+### Should I switch from a Claude subscription to the z.ai GLM Coding Plan?
+Try it before deciding. `claude-z` runs alongside your normal `claude`, so you can give both the same tasks and compare. The main differences are the model (GLM-5.3 instead of Claude), the usage limits, and who processes your code. Everything else in Claude Code works the same.
+
+### How do I get a GLM Coding Plan?
+Subscribe on z.ai, then create an API key in your account. If you sign up through an invite link such as [this referral link](https://z.ai/subscribe?ic=BY27XR8RLD), z.ai's campaign rules (October 2026) give new subscribers 10% off their first GLM Coding Plan order.
+
 ### How do I use Claude Code with z.ai?
 Point Claude Code at z.ai's Anthropic-compatible endpoint, `https://api.z.ai/api/anthropic`, and pass your GLM Coding Plan key as `ANTHROPIC_AUTH_TOKEN`. This repo wraps those settings in a `claude-z` command so they only apply when you want them, and your normal Claude Code login keeps working.
 
@@ -257,6 +291,10 @@ CI runs every installer on GitHub's Ubuntu, macOS and Windows machines with a du
 - [z.ai: GLM Coding Plan overview](https://docs.z.ai/devpack/overview): models, MCP tools and credit costs
 - [z.ai: Vision MCP server](https://docs.z.ai/devpack/mcp/vision-mcp-server), [Web Search MCP](https://docs.z.ai/devpack/mcp/search-mcp-server), [Web Reader MCP](https://docs.z.ai/devpack/mcp/reader-mcp-server)
 - [Claude Code docs: settings, status line and hooks](https://code.claude.com/docs)
+
+## Referral disclosure
+
+The GLM Coding Plan links in this repo (https://z.ai/subscribe?ic=BY27XR8RLD) are the author's referral link. If you subscribe through it, z.ai gives you 10% off your first subscription and gives the author z.ai credits, according to [z.ai's campaign rules](https://docs.z.ai/devpack/credit-campaign-rules) as of October 2026. It costs you nothing extra. Plain link without referral: [z.ai/subscribe](https://z.ai/subscribe).
 
 ## License
 

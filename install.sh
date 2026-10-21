@@ -3,15 +3,18 @@
 # Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
 # web reader and vision MCP tools, a quota status line and /zai-usage.
 #
-#   curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.sh | bash
 #   ./install.sh [--no-mcp] [--ref TAG] | --uninstall [--purge]
 #
 # Non-interactive: ZAI_API_KEY=... ./install.sh
 # https://github.com/yel-hadd/claude-code-zai
+# No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD
+#   (referral link: 10% off your first subscription; the author gets z.ai credits)
 set -euo pipefail
 
 REPO="yel-hadd/claude-code-zai"
-REF="v1.0.0"
+REF="v1.1.0"
+PLAN_URL="https://z.ai/subscribe?ic=BY27XR8RLD"
 DEST="$HOME/.claude-z"
 KEY_FILE="$HOME/.config/zai/api_key"
 MARK_BEGIN="# >>> claude-z >>>"
@@ -110,10 +113,11 @@ do_install() {
     say "Using existing key in $KEY_FILE"
   else
     [ -r /dev/tty ] || die "No terminal to ask for the key. Run with ZAI_API_KEY=... set."
+    printf 'No GLM Coding Plan yet? Get one here (referral link, 10%% off your first subscription):\n  %s\n' "$PLAN_URL" > /dev/tty
     printf 'Paste your z.ai API key (input hidden): ' > /dev/tty
     local key; IFS= read -rs key < /dev/tty; echo > /dev/tty
     key="$(printf '%s' "$key" | tr -d '[:space:]')"
-    [ -n "$key" ] || die "No key entered"
+    [ -n "$key" ] || die "No key entered. Get a GLM Coding Plan key at $PLAN_URL (referral link, 10% off your first subscription)"
     (umask 077; printf '%s' "$key" > "$KEY_FILE")
     say "Saved key to $KEY_FILE"
   fi

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <text x="80" y="118" font-family="Noto Sans Mono, monospace" font-size="26" fill="#7d8590">github.com/yel-hadd/claude-code-zai</text>
+  <text x="80" y="210" font-family="Noto Sans, sans-serif" font-weight="700" font-size="72" fill="#e6edf3">Claude Code on z.ai GLM-5.3</text>
+  <text x="80" y="285" font-family="Noto Sans, sans-serif" font-size="36" fill="#9198a1">One-command switch for Linux, macOS and Windows</text>
+  <g font-family="Noto Sans, sans-serif" font-size="28" fill="#e6edf3">
+    <rect x="80" y="330" width="232" height="52" rx="26" fill="#1f6feb" fill-opacity="0.18" stroke="#388bfd"/>
+    <text x="196" y="365" text-anchor="middle">1M context</text>
+    <rect x="328" y="330" width="300" height="52" rx="26" fill="#1f6feb" fill-opacity="0.18" stroke="#388bfd"/>
+    <text x="478" y="365" text-anchor="middle">Web search + vision</text>
+    <rect x="644" y="330" width="250" height="52" rx="26" fill="#1f6feb" fill-opacity="0.18" stroke="#388bfd"/>
+    <text x="769" y="365" text-anchor="middle">Quota status line</text>
+  </g>
+  <rect x="80" y="430" width="1120" height="130" rx="14" fill="#010409" stroke="#30363d"/>
+  <circle cx="112" cy="458" r="7" fill="#f85149"/><circle cx="136" cy="458" r="7" fill="#d29922"/><circle cx="160" cy="458" r="7" fill="#3fb950"/>
+  <text x="112" y="508" font-family="Noto Sans Mono, monospace" font-size="27" fill="#e6edf3"><tspan fill="#3fb950">$</tspan> curl -fsSL …/install.sh | bash   <tspan fill="#7d8590">&amp;&amp;</tspan>   claude-z</text>
+  <text x="112" y="544" font-family="Noto Sans Mono, monospace" font-size="24" fill="#7d8590">glm-5.3[1m] · ctx 12% · 5h 8% · wk 41%</text>
+</svg>

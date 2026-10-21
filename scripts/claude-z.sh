@@ -1,6 +1,7 @@
 # claude-z: Claude Code on the z.ai GLM Coding Plan (bash and zsh).
 # Sourced from ~/.bashrc or ~/.zshrc. Key lives in ~/.config/zai/api_key (chmod 600).
 # https://github.com/yel-hadd/claude-code-zai
+# No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)
 
 unalias claude-z zai-usage 2>/dev/null
 
@@ -8,6 +9,7 @@ function claude-z {
   local key_file="$HOME/.config/zai/api_key"
   if [ ! -s "$key_file" ]; then
     echo "claude-z: missing z.ai key in $key_file" >&2
+    echo "No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)" >&2
     return 1
   fi
   local key; key="$(cat "$key_file")"

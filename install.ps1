@@ -2,22 +2,25 @@
 # Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
 # web reader and vision MCP tools, a quota status line and /zai-usage.
 #
-#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex
 #   .\install.ps1 [-NoMcp] [-Ref TAG] | -Uninstall [-Purge]
 #   & ([scriptblock]::Create((irm <url>))) -Uninstall      # options when piping
 #
 # Non-interactive: $env:ZAI_API_KEY = '...'; .\install.ps1
 # https://github.com/yel-hadd/claude-code-zai
+# No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD
+#   (referral link: 10% off your first subscription; the author gets z.ai credits)
 param(
   [switch]$Uninstall,
   [switch]$Purge,
   [switch]$NoMcp,
-  [string]$Ref = 'v1.0.0'
+  [string]$Ref = 'v1.1.0'
 )
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $Repo = 'yel-hadd/claude-code-zai'
+$PlanUrl = 'https://z.ai/subscribe?ic=BY27XR8RLD'
 $Dest = Join-Path $HOME '.claude-z'
 $KeyFile = Join-Path $HOME '.config/zai/api_key'
 $MarkBegin = '# >>> claude-z >>>'
@@ -139,11 +142,12 @@ function Invoke-Install {
   } elseif ((Test-Path $KeyFile) -and "$(Get-Content $KeyFile -Raw)".Trim()) {
     Say "Using existing key in $KeyFile"
   } else {
+    Write-Host "No GLM Coding Plan yet? Get one here (referral link, 10% off your first subscription):`n  $PlanUrl"
     $sec = Read-Host 'Paste your z.ai API key (input hidden)' -AsSecureString
     $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec)
     try { $key = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
     $key = ($key -replace '\s', '')
-    if (-not $key) { throw 'No key entered' }
+    if (-not $key) { throw "No key entered. Get a GLM Coding Plan key at $PlanUrl (referral link, 10% off your first subscription)" }
     Set-Content -Path $KeyFile -Value $key -NoNewline
     Say "Saved key to $KeyFile"
   }

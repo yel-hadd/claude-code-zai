@@ -1,10 +1,12 @@
 # claude-z: Claude Code on the z.ai GLM Coding Plan (PowerShell 5.1 and 7).
 # Dot-sourced from $PROFILE. Key lives in ~/.config/zai/api_key (owner-only ACL).
 # https://github.com/yel-hadd/claude-code-zai
+# No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)
 
 function claude-z {
   $keyFile = Join-Path $HOME '.config\zai\api_key'
   if (-not (Test-Path $keyFile) -or -not "$(Get-Content $keyFile -Raw)".Trim()) {
+    Write-Host "No GLM Coding Plan yet? https://z.ai/subscribe?ic=BY27XR8RLD (referral link, 10% off your first subscription)"
     Write-Error "claude-z: missing z.ai key in $keyFile"; return
   }
   $key = (Get-Content $keyFile -Raw).Trim()

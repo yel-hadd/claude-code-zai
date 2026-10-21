@@ -1,10 +1,10 @@
 # Setup prompt: Claude Code on z.ai GLM
 
-Copy everything in the box below and paste it into Claude Code (plain `claude`), Cursor, or any coding agent that can run shell commands. The agent installs `claude-z` from [github.com/yel-hadd/claude-code-zai](https://github.com/yel-hadd/claude-code-zai), checks it, and reports back. Have your z.ai GLM Coding Plan API key ready.
+Copy everything in the box below and paste it into Claude Code (plain `claude`), Cursor, or any coding agent that can run shell commands. The agent installs `claude-z` from [github.com/yel-hadd/claude-code-zai](https://github.com/yel-hadd/claude-code-zai), checks it, and reports back. Have your z.ai GLM Coding Plan API key ready. No plan yet? [Subscribe here](https://z.ai/subscribe?ic=BY27XR8RLD) (referral link, 10% off your first subscription).
 
 ````text
 Set up "claude-z" on this computer: Claude Code running on the z.ai GLM Coding Plan,
-using the installer from https://github.com/yel-hadd/claude-code-zai (tag v1.0.0).
+using the installer from https://github.com/yel-hadd/claude-code-zai (tag v1.1.0).
 
 Rules:
 - Never print, log, echo, commit or paste my API key anywhere except the key file the
@@ -17,13 +17,16 @@ Rules:
 - If something fails, stop and show me the error. Don't work around it silently.
 
 Steps:
+0. Ask whether I already have a z.ai GLM Coding Plan API key. If not, tell me to subscribe at
+   https://z.ai/subscribe?ic=BY27XR8RLD (the repo author's referral link: 10% off the first subscription)
+   or at https://z.ai/subscribe, create an API key, and come back.
 1. Detect my OS and shell. Check that these exist and tell me about anything missing:
    `claude` (Claude Code), `curl`, `jq` on Linux/macOS, and Node.js 22+ (only needed for
    z.ai's vision tool).
 2. Ask me to run the installer myself in my terminal, because it asks for my key with
    hidden input. Give me the exact command:
-   - Linux/macOS: curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash
-   - Windows PowerShell: irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex
+   - Linux/macOS: curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.sh | bash
+   - Windows PowerShell: irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex
    If you can run interactive commands in my terminal, you may run it yourself instead.
    Wait until I say it finished, then read its output.
 3. Verify, in a new shell so the rc file or profile is loaded:

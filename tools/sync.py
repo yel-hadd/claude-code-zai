@@ -38,6 +38,12 @@ def code_html(rel):
     return f'<pre><code class="language-{lang}">{html.escape(read(rel).rstrip(), quote=False)}</code></pre>\n'
 
 
+def link_html(m):
+    text, url = m.group(1), m.group(2)
+    rel = ' rel="sponsored noopener"' if "z.ai/subscribe?ic=" in url else ""  # referral links
+    return f'<a href="{url}"{rel}>{text}</a>'
+
+
 def inline_html(text):
     """Markdown inline (code spans, links) to HTML."""
     parts = re.split(r"(`[^`]+`)", text)
@@ -47,7 +53,7 @@ def inline_html(text):
             out.append(f"<code>{html.escape(p[1:-1], quote=False)}</code>")
         else:
             p = html.escape(p, quote=False)
-            p = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', p)
+            p = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link_html, p)
             out.append(p)
     return "".join(out)
 

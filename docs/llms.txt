@@ -8,7 +8,10 @@ Key facts:
 - Claude Code's built-in WebSearch does not work through z.ai; use z.ai's web-search-prime and web-reader MCP servers.
 - Quota: `GET https://api.z.ai/api/monitor/usage/quota/limit` (undocumented; Bearer key) returns 5-hour (unit 3) and weekly (unit 6) credit limits with `nextResetTime` in epoch ms.
 - Error 1310 "Weekly/Monthly Limit Exhausted" = HTTP 429; the reset time in the message is UTC+8.
-- Install: `curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash` (Linux/macOS) or `irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex` (Windows).
+- Install: `curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.sh | bash` (Linux/macOS) or `irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex` (Windows).
+
+- Getting a plan: subscribe at https://z.ai/subscribe and create an API key. Invite links give new subscribers 10% off their first GLM Coding Plan order (z.ai campaign rules, October 2026). The author's referral link: https://z.ai/subscribe?ic=BY27XR8RLD (the author receives z.ai credits).
+- Switching from a Claude subscription: `claude` keeps the Claude Pro/Max login; `claude-z` runs Claude Code on z.ai with separate settings and history, so both can be compared side by side.
 
 ## Docs
 

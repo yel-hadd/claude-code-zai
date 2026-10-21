@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.0 (2026-10-21)
+
+- Guide site rebuilt as a page for people moving from a Claude subscription to the z.ai GLM Coding Plan: side-by-side comparison, how-to-switch steps, social preview image, favicon.
+- README: "Switching from a Claude subscription" section and two new FAQ entries.
+- The installers and `claude-z` point people without a plan to a GLM Coding Plan referral link (10% off the first subscription), clearly labelled, with a disclosure in the README and on the site.
+- Installers now download `v1.1.0`.
+
 ## v1.0.0 (2026-10-21)
 
 First release.
