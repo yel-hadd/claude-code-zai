@@ -185,6 +185,8 @@ function Invoke-Install {
   foreach ($p in Get-ProfilePaths) {
     New-Item -ItemType Directory -Force (Split-Path $p) | Out-Null
     if (Test-Path $p) { Copy-Item -Force $p "$p.bak.claude-z"; Remove-Block $p | Out-Null }
+    # start on a fresh line, or the marker gets glued to the file's last line
+    if ((Test-Path $p) -and ($raw = [IO.File]::ReadAllText($p)) -and -not $raw.EndsWith("`n")) { Add-Content -Path $p -Value '' }
     Add-Content -Path $p -Value @(
       $MarkBegin,
       '# claude-z: Claude Code on z.ai GLM. Managed by github.com/yel-hadd/claude-code-zai (install.ps1 -Uninstall removes it)',

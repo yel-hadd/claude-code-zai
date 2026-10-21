@@ -55,7 +55,7 @@ jobs:
         run: |
           set -eu
           export SHELL=${{ matrix.shell }}
-          touch ~/.bashrc
+          printf 'export CI_NO_TRAILING_NEWLINE=1' >> ~/.bashrc   # last line without newline
           ${{ matrix.shell }} ./install.sh --no-mcp
           ${{ matrix.shell }} ./install.sh --no-mcp
           ls -l ~/.config/zai/api_key
@@ -90,10 +90,12 @@ jobs:
           ZAI_API_KEY: dummy-key-for-ci
         run: |
           $ErrorActionPreference = 'Stop'
+          $docs = [Environment]::GetFolderPath('MyDocuments')
+          New-Item -ItemType Directory -Force "$docs\PowerShell" | Out-Null
+          [IO.File]::WriteAllText("$docs\PowerShell\profile.ps1", '$env:CI_NO_TRAILING_NEWLINE = 1')   # last line without newline
           .\install.ps1 -NoMcp
           .\install.ps1 -NoMcp
           icacls "$HOME\.config\zai\api_key"
-          $docs = [Environment]::GetFolderPath('MyDocuments')
           foreach ($p in "$docs\WindowsPowerShell\profile.ps1", "$docs\PowerShell\profile.ps1") {
             $n = @(Select-String -Path $p -SimpleMatch '>>> claude-z >>>').Count
             "$p : $n block(s)"; if ($n -ne 1) { throw "expected 1 block in $p" }

@@ -161,6 +161,8 @@ do_install() {
   for rc in $(rc_files); do
     [ -f "$rc" ] && cp "$rc" "$rc.bak.claude-z"
     strip_block "$rc"
+    # start on a fresh line, or the marker gets glued to the file's last line
+    if [ -s "$rc" ] && [ -n "$(tail -c1 "$rc")" ]; then echo >> "$rc"; fi
     {
       echo "$MARK_BEGIN"
       echo '# claude-z: Claude Code on z.ai GLM. Managed by github.com/yel-hadd/claude-code-zai (install.sh --uninstall removes it)'
