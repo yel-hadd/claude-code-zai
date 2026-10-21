@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Code with z.ai GLM-5.3: Setup for Linux, macOS &amp; Windows</title>
+<meta name="description" content="Run Claude Code on the z.ai GLM Coding Plan with GLM-5.3 and its full 1M context. One-command setup for Linux, macOS and Windows, z.ai web search and vision MCP, and a live quota status line.">
+<link rel="canonical" href="https://yel-hadd.github.io/claude-code-zai/">
+<meta name="author" content="Yassine El Haddad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code with z.ai GLM-5.3: Setup for Linux, macOS & Windows">
+<meta property="og:description" content="One-command setup for Claude Code on the z.ai GLM Coding Plan: 1M context, web search and vision MCP, quota status line.">
+<meta property="og:url" content="https://yel-hadd.github.io/claude-code-zai/">
+<meta property="article:modified_time" content="2026-10-21">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Claude Code with z.ai GLM-5.3: Setup for Linux, macOS & Windows">
+<meta name="twitter:description" content="One-command setup for Claude Code on the z.ai GLM Coding Plan: 1M context, web search and vision MCP, quota status line.">
+<link rel="alternate" type="text/plain" title="LLM-readable summary" href="https://yel-hadd.github.io/claude-code-zai/llms.txt">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://yel-hadd.github.io/claude-code-zai/#article",
+      "headline": "Claude Code with z.ai GLM-5.3: Setup for Linux, macOS & Windows",
+      "description": "How to run Claude Code on the z.ai GLM Coding Plan with GLM-5.3 and a 1M-token context, z.ai web search and vision MCP servers, and a quota status line.",
+      "url": "https://yel-hadd.github.io/claude-code-zai/",
+      "datePublished": "2026-10-21",
+      "dateModified": "2026-10-21",
+      "inLanguage": "en",
+      "author": { "@type": "Person", "name": "Yassine El Haddad", "url": "https://github.com/yel-hadd" },
+      "about": ["Claude Code", "z.ai", "GLM-5.3", "GLM Coding Plan"],
+      "proficiencyLevel": "Beginner"
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://yel-hadd.github.io/claude-code-zai/#code",
+      "name": "claude-code-zai",
+      "description": "Installer and scripts that run Claude Code on the z.ai GLM Coding Plan.",
+      "codeRepository": "https://github.com/yel-hadd/claude-code-zai",
+      "programmingLanguage": ["Bash", "PowerShell"],
+      "runtimePlatform": ["Linux", "macOS", "Windows"],
+      "license": "https://opensource.org/licenses/MIT",
+      "version": "1.0.0",
+      "author": { "@type": "Person", "name": "Yassine El Haddad", "url": "https://github.com/yel-hadd" }
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://yel-hadd.github.io/claude-code-zai/#howto",
+      "name": "How to set up Claude Code with the z.ai GLM Coding Plan",
+      "totalTime": "PT5M",
+      "supply": [{ "@type": "HowToSupply", "name": "z.ai GLM Coding Plan API key" }],
+      "tool": [{ "@type": "HowToTool", "name": "Claude Code" }, { "@type": "HowToTool", "name": "jq (Linux and macOS)" }],
+      "step": [
+        { "@type": "HowToStep", "position": 1, "name": "Install Claude Code", "text": "Install Claude Code and run claude update so it knows the [1m] model names." },
+        { "@type": "HowToStep", "position": 2, "name": "Run the installer", "text": "On Linux or macOS run: curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash. On Windows PowerShell run: irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex" },
+        { "@type": "HowToStep", "position": 3, "name": "Enter your z.ai API key", "text": "Paste your GLM Coding Plan API key when asked. It is saved to ~/.config/zai/api_key, readable only by you." },
+        { "@type": "HowToStep", "position": 4, "name": "Start claude-z", "text": "Open a new terminal and run claude-z. The status line shows your 5-hour and weekly quota." },
+        { "@type": "HowToStep", "position": 5, "name": "Check the setup", "text": "Run claude-z mcp list to confirm the web search, web reader and vision servers are connected, and zai-usage to see your quota." }
+      ]
+    }
+  ]
+}
+</script>
+<!-- BEGIN:faq-jsonld -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": "https://yel-hadd.github.io/claude-code-zai/#faq",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I use Claude Code with z.ai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Point Claude Code at z.ai's Anthropic-compatible endpoint, https://api.z.ai/api/anthropic, and pass your GLM Coding Plan key as ANTHROPIC_AUTH_TOKEN. This repo wraps those settings in a claude-z command so they only apply when you want them, and your normal Claude Code login keeps working."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Claude Code say \"Model glm-5.3 isn't recognized · context assumed to be 200k tokens\"?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Claude Code doesn't know GLM's context size. Use the model names with the [1m] suffix (glm-5.3[1m], glm-5.3-flash[1m]) and set CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000. Claude Code then reports a 1,000,000-token context window. If it says the [1m] model doesn't exist, run claude update."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does GLM-5.3 get the full 1M context in Claude Code?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, with the [1m] model names. Tested on Claude Code 2.1.301 and later, which report contextWindow: 1000000 for glm-5.3[1m]. Without the suffix, Claude Code assumes 200k and compacts the conversation far too early."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check my z.ai GLM Coding Plan quota?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Three ways: the status line at the bottom of claude-z, the zai-usage command in any terminal, and /zai-usage inside a session. All three read z.ai's quota endpoint, https://api.z.ai/api/monitor/usage/quota/limit, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs; it was checked against a live Pro plan in October 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check quota when the limit is already used up?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use zai-usage in a terminal, or /zai-usage inside claude-z. A normal slash command would fail, because it sends its output to the model, and the model is what's blocked. This repo's /zai-usage is answered by a local UserPromptSubmit hook instead, so it never calls the API."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does error 1310 \"Weekly/Monthly Limit Exhausted\" mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Your plan's weekly credit limit is used up, and z.ai returns HTTP 429 until it resets. Claude Code may retry for a while, which looks like a hang. The reset time in z.ai's message is China Standard Time (UTC+8). zai-usage shows the same reset time converted to your local time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does web search work in Claude Code with z.ai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not the built-in one: Claude Code's WebSearch tool runs on Anthropic's servers. This setup blocks it and adds z.ai's web-search-prime and web-reader MCP servers instead. z.ai charges 1.2 credits per search or page read, according to its plan overview."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I keep my Anthropic Claude subscription alongside z.ai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. claude keeps using your Anthropic login and ~/.claude. claude-z uses z.ai and its own ~/.claude-z folder, with separate settings, history and MCP servers. Nothing is shared between them."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Where is my z.ai API key stored?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In ~/.config/zai/api_key, with permissions limited to your user (chmod 600 on Linux/macOS, an owner-only ACL on Windows). claude-z reads it at launch and passes it to Claude Code and the z.ai tools as environment variables. The MCP config only contains the ${ZAI_API_KEY} placeholder."
+      }
+    }
+  ]
+}
+</script>
+<!-- END:faq-jsonld -->
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --code-bg: #f6f8fa; --link: #0969da; --th-bg: #f6f8fa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --code-bg: #161b22; --link: #4493f8; --th-bg: #161b22;
+    }
+  }
+  body { background: var(--bg); color: var(--fg); margin: 0;
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  header, main, footer { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 32px; }
+  main { padding-bottom: 32px; }
+  footer { color: var(--muted); font-size: .9em; padding-bottom: 48px; border-top: 1px solid var(--border); padding-top: 16px; }
+  h1 { font-size: 2em; margin: 0 0 8px; line-height: 1.25; }
+  h2 { font-size: 1.4em; margin-top: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.1em; margin-top: 1.5em; }
+  .meta { color: var(--muted); margin: 0 0 16px; }
+  a { color: var(--link); }
+  code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: .15em .35em; border-radius: 4px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; line-height: 1.45; }
+  pre code { background: none; padding: 0; font-size: .85em; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .95em; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--th-bg); }
+  details { margin: .75em 0; }
+  summary { cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Claude Code with z.ai GLM-5.3: setup for Linux, macOS and Windows</h1>
+  <p class="meta">Last updated <time datetime="2026-10-21">2026-10-21</time> · by <a href="https://github.com/yel-hadd">Yassine El Haddad</a> · <a href="https://github.com/yel-hadd/claude-code-zai">Source on GitHub</a> · Not affiliated with Anthropic or Z.ai</p>
+</header>
+<main>
+<p>You can run <a href="https://code.claude.com/docs">Claude Code</a> on the <a href="https://docs.z.ai/devpack/overview">z.ai GLM Coding Plan</a> by pointing it at z.ai's Anthropic-compatible endpoint. This project installs a separate <code>claude-z</code> command that uses GLM-5.3 with its full 1M-token context, z.ai's web search, web reader and vision tools, and a status line showing your 5-hour and weekly quota. Your normal <code>claude</code> login stays untouched.</p>
+<pre><code>glm-5.3[1m] · ctx 12% · 5h 0% · wk 100% ↻Thu 20:47</code></pre>
+
+<h2 id="quick-start">Quick start</h2>
+<p>You need a GLM Coding Plan API key, <a href="https://code.claude.com/docs/en/setup">Claude Code</a>, and <code>jq</code> on Linux and macOS. Node.js 22 or newer is only needed for the vision tool.</p>
+<p><strong>Linux and macOS:</strong></p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash</code></pre>
+<p><strong>Windows (PowerShell):</strong></p>
+<pre><code>irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex</code></pre>
+<p>The installer asks for your key with hidden input. Then open a new terminal and run <code>claude-z</code>. To let an AI agent do the setup, paste the <a href="https://github.com/yel-hadd/claude-code-zai/blob/main/SETUP_PROMPT.md">setup prompt</a> into Claude Code, Cursor or any coding agent.</p>
+<p>Re-running the installer is safe: it updates files and never duplicates anything. <code>install.sh --uninstall</code> or <code>install.ps1 -Uninstall</code> removes it, keeping your key unless you add <code>--purge</code> / <code>-Purge</code>.</p>
+
+<h2 id="what-you-get">What you get</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Piece</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>claude-z</code></td><td>Starts Claude Code against z.ai with GLM-5.3 and a separate config folder, <code>~/.claude-z</code></td></tr>
+<tr><td>1M context</td><td>Uses the <code>glm-5.3[1m]</code> model names, so Claude Code knows the real context size</td></tr>
+<tr><td>Web search and reader</td><td>z.ai's MCP servers replace Claude Code's built-in web search, which can't run through z.ai</td></tr>
+<tr><td>Vision</td><td>z.ai's image MCP server for screenshots and images</td></tr>
+<tr><td>Quota status line</td><td>Model, context used, 5-hour and weekly quota, reset time in your local time zone</td></tr>
+<tr><td><code>zai-usage</code></td><td>Full quota report in your terminal, without starting Claude Code</td></tr>
+<tr><td><code>/zai-usage</code></td><td>The same report inside a session; works even when the quota is used up</td></tr>
+</tbody>
+</table></div>
+<p>Your API key is stored in <code>~/.config/zai/api_key</code>, readable only by you. Config files reference it as <code>${ZAI_API_KEY}</code> and never contain the key itself.</p>
+
+<h2 id="settings">The settings</h2>
+<p>These are the environment variables <code>claude-z</code> sets. They are the same on every OS.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Variable</th><th>Value</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td><code>ANTHROPIC_BASE_URL</code></td><td><code>https://api.z.ai/api/anthropic</code></td><td>z.ai's Anthropic-compatible endpoint</td></tr>
+<tr><td><code>ANTHROPIC_AUTH_TOKEN</code></td><td>your z.ai API key</td><td>Read from the key file at launch</td></tr>
+<tr><td><code>ANTHROPIC_MODEL</code></td><td><code>glm-5.3[1m]</code></td><td>Main model</td></tr>
+<tr><td><code>ANTHROPIC_DEFAULT_OPUS_MODEL</code></td><td><code>glm-5.3[1m]</code></td><td>Used when you pick Opus in <code>/model</code></td></tr>
+<tr><td><code>ANTHROPIC_DEFAULT_SONNET_MODEL</code></td><td><code>glm-5.3[1m]</code></td><td>Used when you pick Sonnet in <code>/model</code></td></tr>
+<tr><td><code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code></td><td><code>glm-5.3-flash[1m]</code></td><td>Fast model for background jobs</td></tr>
+<tr><td><code>CLAUDE_CODE_SUBAGENT_MODEL</code></td><td><code>glm-5.3[1m]</code></td><td>Model for subagents</td></tr>
+<tr><td><code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code></td><td><code>1000000</code></td><td>Compact near 1M tokens, not 200k</td></tr>
+<tr><td><code>API_TIMEOUT_MS</code></td><td><code>3000000</code></td><td>50-minute timeout for long responses</td></tr>
+<tr><td><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code></td><td><code>1</code></td><td>No telemetry or update checks to Anthropic</td></tr>
+<tr><td><code>CLAUDE_CONFIG_DIR</code></td><td><code>~/.claude-z</code></td><td>Separate settings, history and MCP list</td></tr>
+</tbody>
+</table></div>
+<p>The base URL, timeout, model names and auto-compact window come from <a href="https://docs.z.ai/devpack/tool/claude">z.ai's Claude Code guide</a>.</p>
+
+<h2 id="manual-setup">Manual setup</h2>
+<p>Everything the installers put in <code>~/.claude-z</code>, if you'd rather set it up by hand. Make the <code>.sh</code> files executable with <code>chmod +x</code>, and on Linux and macOS install <code>jq</code>.</p>
+
+<h3 id="manual-linux-macos">Linux and macOS</h3>
+<details><summary><code>~/.claude-z/claude-z.sh</code>: the command. Add <code>. ~/.claude-z/claude-z.sh</code> to <code>~/.bashrc</code> or <code>~/.zshrc</code>.</summary>
+<!-- BEGIN:scripts/claude-z.sh -->
+<pre><code class="language-bash"># claude-z: Claude Code on the z.ai GLM Coding Plan (bash and zsh).
+# Sourced from ~/.bashrc or ~/.zshrc. Key lives in ~/.config/zai/api_key (chmod 600).
+# https://github.com/yel-hadd/claude-code-zai
+
+unalias claude-z zai-usage 2&gt;/dev/null
+
+function claude-z {
+  local key_file="$HOME/.config/zai/api_key"
+  if [ ! -s "$key_file" ]; then
+    echo "claude-z: missing z.ai key in $key_file" &gt;&amp;2
+    return 1
+  fi
+  local key; key="$(cat "$key_file")"
+  CLAUDE_CONFIG_DIR="$HOME/.claude-z" \
+  ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+  ANTHROPIC_AUTH_TOKEN="$key" \
+  ZAI_API_KEY="$key" \
+  API_TIMEOUT_MS=3000000 \
+  ANTHROPIC_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_OPUS_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_SONNET_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL='glm-5.3-flash[1m]' \
+  CLAUDE_CODE_SUBAGENT_MODEL='glm-5.3[1m]' \
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000 \
+  CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
+    claude "$@"
+}
+
+# z.ai quota without starting Claude Code (works even when a limit is exhausted)
+function zai-usage {
+  "$HOME/.claude-z/zai-quota.sh" --full
+}</code></pre>
+<!-- END:scripts/claude-z.sh -->
+</details>
+<details><summary><code>~/.claude-z/zai-quota.sh</code>: reads the quota, cached for 60 seconds</summary>
+<!-- BEGIN:scripts/zai-quota.sh -->
+<pre><code class="language-bash">#!/usr/bin/env bash
+# z.ai GLM Coding Plan quota, from https://api.z.ai/api/monitor/usage/quota/limit
+# Usage: zai-quota.sh [--short|--full|--json]   (cached 60s in ~/.cache/zai-quota.json)
+# https://github.com/yel-hadd/claude-code-zai
+mode="${1:---short}"
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/zai-quota.json"
+key="${ZAI_API_KEY:-$(cat "$HOME/.config/zai/api_key" 2&gt;/dev/null)}"
+[ -n "$key" ] || { echo "z.ai: no key"; exit 0; }
+
+mkdir -p "$(dirname "$cache")"
+if [ ! -s "$cache" ] || [ $(( $(date +%s) - $(stat -c %Y "$cache" 2&gt;/dev/null || stat -f %m "$cache") )) -ge 60 ]; then
+  tmp="$cache.$$"
+  if curl -s -m 5 https://api.z.ai/api/monitor/usage/quota/limit \
+       -H "Authorization: Bearer $key" -H "Accept-Language: en-US,en" -o "$tmp" \
+     &amp;&amp; jq -e '.success == true' "$tmp" &gt;/dev/null 2&gt;&amp;1; then
+    mv "$tmp" "$cache"
+  else
+    rm -f "$tmp"
+  fi
+fi
+[ -s "$cache" ] || { echo "z.ai: quota unavailable"; exit 0; }
+
+case "$mode" in
+  --json) cat "$cache" ;;
+  --short)
+    # unit 3 = hours, 6 = weeks, 5 = months; nextResetTime is epoch ms
+    jq -r '
+      def win: if .unit == 3 then "\(.number)h" elif .unit == 6 then "wk" elif .unit == 5 then "mo" else "u\(.unit)" end;
+      def reset: if .nextResetTime then " ↻" + ((.nextResetTime / 1000) | strflocaltime("%a %H:%M")) else "" end;
+      [.data.limits[] | select(.type != "TIME_LIMIT") | "\(win) \(.percentage)%" + (if .percentage &gt;= 80 then reset else "" end)]
+      | join(" · ")' "$cache" ;;
+  --full)
+    jq -r '
+      def win: if .unit == 3 then "\(.number)-hour window" elif .unit == 6 then "Weekly" elif .unit == 5 then "Monthly" else "unit \(.unit) x\(.number)" end;
+      "z.ai plan: \(.data.level)",
+      (.data.limits[] |
+        "\(win) (\(.type)): \(.percentage)% used, \(.currentValue // 0) of \(.usage // "?"), \(.remaining // "?") left" +
+        (if .nextResetTime then ", resets \((.nextResetTime / 1000) | strflocaltime("%a %b %d %H:%M %Z"))" else "" end))' "$cache" ;;
+esac</code></pre>
+<!-- END:scripts/zai-quota.sh -->
+</details>
+<details><summary><code>~/.claude-z/statusline.sh</code>: the status line</summary>
+<!-- BEGIN:scripts/statusline.sh -->
+<pre><code class="language-bash">#!/usr/bin/env bash
+# claude-z status line: model · context used · z.ai quota
+# https://github.com/yel-hadd/claude-code-zai
+input="$(cat)"
+model="$(jq -r '.model.display_name // .model.id // "GLM"' &lt;&lt;&lt;"$input")"
+ctx="$(jq -r '.context_window.used_percentage // empty | floor' &lt;&lt;&lt;"$input" 2&gt;/dev/null)"
+quota="$("$(dirname "$0")/zai-quota.sh" --short)"
+printf '%s' "$model"
+[ -n "$ctx" ] &amp;&amp; printf ' · ctx %s%%' "$ctx"
+printf ' · %s\n' "$quota"</code></pre>
+<!-- END:scripts/statusline.sh -->
+</details>
+<details><summary><code>~/.claude-z/hooks/zai-usage-hook.sh</code>: answers <code>/zai-usage</code> without calling the model</summary>
+<!-- BEGIN:scripts/zai-usage-hook.sh -->
+<pre><code class="language-bash">#!/usr/bin/env bash
+# UserPromptSubmit hook: answer /zai-usage locally, without calling the model,
+# so it still works when the z.ai quota is exhausted.
+# https://github.com/yel-hadd/claude-code-zai
+prompt="$(jq -r '.prompt // empty')"
+case "$prompt" in
+  /zai-usage|/zai-usage\ *)
+    out="$("$(dirname "$0")/../zai-quota.sh" --full 2&gt;&amp;1)"
+    jq -n --arg r "$out" '{decision: "block", reason: $r}'
+    ;;
+esac
+exit 0</code></pre>
+<!-- END:scripts/zai-usage-hook.sh -->
+</details>
+<details><summary><code>~/.claude-z/settings.json</code></summary>
+<!-- BEGIN:config/settings.json -->
+<pre><code class="language-json">{
+  "permissions": {
+    "deny": ["WebSearch"]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude-z/statusline.sh",
+    "padding": 0
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "~/.claude-z/hooks/zai-usage-hook.sh", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+<!-- END:config/settings.json -->
+</details>
+
+<h3 id="manual-windows">Windows</h3>
+<p>Windows uses PowerShell versions of the same scripts. In <code>settings.json</code>, run them with a full forward-slash path, for example <code>powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/YOU/.claude-z/statusline.ps1</code>, which works whichever shell Claude Code uses.</p>
+<details><summary><code>~/.claude-z/claude-z.ps1</code>: the command. Dot-source it from your PowerShell profile.</summary>
+<!-- BEGIN:scripts/claude-z.ps1 -->
+<pre><code class="language-powershell"># claude-z: Claude Code on the z.ai GLM Coding Plan (PowerShell 5.1 and 7).
+# Dot-sourced from $PROFILE. Key lives in ~/.config/zai/api_key (owner-only ACL).
+# https://github.com/yel-hadd/claude-code-zai
+
+function claude-z {
+  $keyFile = Join-Path $HOME '.config\zai\api_key'
+  if (-not (Test-Path $keyFile) -or -not "$(Get-Content $keyFile -Raw)".Trim()) {
+    Write-Error "claude-z: missing z.ai key in $keyFile"; return
+  }
+  $key = (Get-Content $keyFile -Raw).Trim()
+  $vars = @{
+    CLAUDE_CONFIG_DIR                        = Join-Path $HOME '.claude-z'
+    ANTHROPIC_BASE_URL                       = 'https://api.z.ai/api/anthropic'
+    ANTHROPIC_AUTH_TOKEN                     = $key
+    ZAI_API_KEY                              = $key
+    API_TIMEOUT_MS                           = '3000000'
+    ANTHROPIC_MODEL                          = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_OPUS_MODEL             = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_SONNET_MODEL           = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_HAIKU_MODEL            = 'glm-5.3-flash[1m]'
+    CLAUDE_CODE_SUBAGENT_MODEL               = 'glm-5.3[1m]'
+    CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1'
+  }
+  $saved = @{}
+  foreach ($name in $vars.Keys) {
+    $saved[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+    [Environment]::SetEnvironmentVariable($name, $vars[$name], 'Process')
+  }
+  try { claude @args }
+  finally {
+    foreach ($name in $saved.Keys) {
+      [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process')
+    }
+  }
+}
+
+# z.ai quota without starting Claude Code (works even when a limit is exhausted)
+function zai-usage {
+  &amp; (Join-Path $HOME '.claude-z\zai-quota.ps1') -Mode Full
+}</code></pre>
+<!-- END:scripts/claude-z.ps1 -->
+</details>
+<details><summary><code>~/.claude-z/zai-quota.ps1</code>: reads the quota, cached for 60 seconds</summary>
+<!-- BEGIN:scripts/zai-quota.ps1 -->
+<pre><code class="language-powershell"># z.ai GLM Coding Plan quota, from https://api.z.ai/api/monitor/usage/quota/limit
+# Usage: zai-quota.ps1 [-Mode Short|Full|Json]   (cached 60s in %TEMP%\zai-quota.json)
+# https://github.com/yel-hadd/claude-code-zai
+param([ValidateSet('Short', 'Full', 'Json')][string]$Mode = 'Short')
+
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+$key = $env:ZAI_API_KEY
+$keyFile = Join-Path $HOME '.config/zai/api_key'
+if (-not $key -and (Test-Path $keyFile)) { $key = "$(Get-Content $keyFile -Raw)".Trim() }
+if (-not $key) { 'z.ai: no key'; return }
+
+$tmpDir = if ($env:TEMP) { $env:TEMP } else { [IO.Path]::GetTempPath() }
+$cache = Join-Path $tmpDir 'zai-quota.json'
+if (-not (Test-Path $cache) -or ((Get-Date) - (Get-Item $cache).LastWriteTime).TotalSeconds -ge 60) {
+  try {
+    $r = Invoke-RestMethod -Uri 'https://api.z.ai/api/monitor/usage/quota/limit' -TimeoutSec 5 `
+      -Headers @{ Authorization = "Bearer $key"; 'Accept-Language' = 'en-US,en' }
+    if ($r.success) { $r | ConvertTo-Json -Depth 6 | Set-Content -Path $cache -Encoding UTF8 }
+  } catch { }
+}
+if (-not (Test-Path $cache)) { 'z.ai: quota unavailable'; return }
+if ($Mode -eq 'Json') { Get-Content $cache -Raw; return }
+
+$q = Get-Content $cache -Raw | ConvertFrom-Json
+
+# unit 3 = hours, 6 = weeks, 5 = months; nextResetTime is epoch ms
+function Format-Reset($limit, $format) {
+  [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$limit.nextResetTime).ToLocalTime().ToString($format)
+}
+
+if ($Mode -eq 'Short') {
+  $parts = foreach ($l in $q.data.limits) {
+    if ($l.type -eq 'TIME_LIMIT') { continue }
+    $w = switch ($l.unit) { 3 { "$($l.number)h" } 6 { 'wk' } 5 { 'mo' } default { "u$($l.unit)" } }
+    $s = "$w $($l.percentage)%"
+    if ($l.percentage -ge 80 -and $l.nextResetTime) { $s += ' resets ' + (Format-Reset $l 'ddd HH:mm') }
+    $s
+  }
+  $parts -join ' | '
+} else {
+  "z.ai plan: $($q.data.level)"
+  foreach ($l in $q.data.limits) {
+    $w = switch ($l.unit) { 3 { "$($l.number)-hour window" } 6 { 'Weekly' } 5 { 'Monthly' } default { "unit $($l.unit) x$($l.number)" } }
+    $used = if ($null -ne $l.currentValue) { $l.currentValue } else { 0 }
+    $line = "$w ($($l.type)): $($l.percentage)% used, $used of $($l.usage), $($l.remaining) left"
+    if ($l.nextResetTime) { $line += ', resets ' + (Format-Reset $l 'ddd MMM dd HH:mm zzz') }
+    $line
+  }
+}</code></pre>
+<!-- END:scripts/zai-quota.ps1 -->
+</details>
+<details><summary><code>~/.claude-z/statusline.ps1</code>: the status line</summary>
+<!-- BEGIN:scripts/statusline.ps1 -->
+<pre><code class="language-powershell"># claude-z status line (Windows): model | context used | z.ai quota
+# https://github.com/yel-hadd/claude-code-zai
+try { $in = [Console]::In.ReadToEnd() | ConvertFrom-Json } catch { $in = $null }
+$parts = @(@($in.model.display_name) | Where-Object { $_ })
+if ($null -ne $in.context_window.used_percentage) {
+  $parts += "ctx $([math]::Floor($in.context_window.used_percentage))%"
+}
+$parts += &amp; (Join-Path $PSScriptRoot 'zai-quota.ps1') -Mode Short
+$parts -join ' | '</code></pre>
+<!-- END:scripts/statusline.ps1 -->
+</details>
+<details><summary><code>~/.claude-z/hooks/zai-usage-hook.ps1</code>: answers <code>/zai-usage</code> without calling the model</summary>
+<!-- BEGIN:scripts/zai-usage-hook.ps1 -->
+<pre><code class="language-powershell"># UserPromptSubmit hook (Windows): answer /zai-usage locally, without calling the model,
+# so it still works when the z.ai quota is exhausted.
+# https://github.com/yel-hadd/claude-code-zai
+try { $in = [Console]::In.ReadToEnd() | ConvertFrom-Json } catch { exit 0 }
+if ("$($in.prompt)".Trim() -match '^/zai-usage(\s|$)') {
+  $out = (&amp; (Join-Path $PSScriptRoot '../zai-quota.ps1') -Mode Full) -join "`n"
+  @{ decision = 'block'; reason = $out } | ConvertTo-Json -Compress
+}
+exit 0</code></pre>
+<!-- END:scripts/zai-usage-hook.ps1 -->
+</details>
+
+<h3 id="manual-mcp">z.ai tools (all platforms)</h3>
+<p>Keep the single quotes: they keep <code>${ZAI_API_KEY}</code> as literal text, which Claude Code fills in at startup.</p>
+<pre><code>claude-z mcp add -s user -t http web-search-prime https://api.z.ai/api/mcp/web_search_prime/mcp --header 'Authorization: Bearer ${ZAI_API_KEY}'
+claude-z mcp add -s user -t http web-reader https://api.z.ai/api/mcp/web_reader/mcp --header 'Authorization: Bearer ${ZAI_API_KEY}'
+claude-z mcp add -s user zai-mcp-server -e 'Z_AI_API_KEY=${ZAI_API_KEY}' -e Z_AI_MODE=ZAI -- npx -y @z_ai/mcp-server@latest</code></pre>
+<p>In PowerShell, write the separator as <code>'--'</code> and use <code>cmd /c npx</code> for the last one. PowerShell silently drops a bare <code>--</code>.</p>
+
+<h2 id="faq">FAQ</h2>
+<!-- BEGIN:faq -->
+<h3 id="how-do-i-use-claude-code-with-z-ai">How do I use Claude Code with z.ai?</h3>
+<p>Point Claude Code at z.ai's Anthropic-compatible endpoint, <code>https://api.z.ai/api/anthropic</code>, and pass your GLM Coding Plan key as <code>ANTHROPIC_AUTH_TOKEN</code>. This repo wraps those settings in a <code>claude-z</code> command so they only apply when you want them, and your normal Claude Code login keeps working.</p>
+<h3 id="why-does-claude-code-say-model-glm-5-3-isn-t-recognized-context-assumed-to-be-20">Why does Claude Code say "Model glm-5.3 isn't recognized · context assumed to be 200k tokens"?</h3>
+<p>Claude Code doesn't know GLM's context size. Use the model names with the <code>[1m]</code> suffix (<code>glm-5.3[1m]</code>, <code>glm-5.3-flash[1m]</code>) and set <code>CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000</code>. Claude Code then reports a 1,000,000-token context window. If it says the <code>[1m]</code> model doesn't exist, run <code>claude update</code>.</p>
+<h3 id="does-glm-5-3-get-the-full-1m-context-in-claude-code">Does GLM-5.3 get the full 1M context in Claude Code?</h3>
+<p>Yes, with the <code>[1m]</code> model names. Tested on Claude Code 2.1.301 and later, which report <code>contextWindow: 1000000</code> for <code>glm-5.3[1m]</code>. Without the suffix, Claude Code assumes 200k and compacts the conversation far too early.</p>
+<h3 id="how-do-i-check-my-z-ai-glm-coding-plan-quota">How do I check my z.ai GLM Coding Plan quota?</h3>
+<p>Three ways: the status line at the bottom of <code>claude-z</code>, the <code>zai-usage</code> command in any terminal, and <code>/zai-usage</code> inside a session. All three read z.ai's quota endpoint, <code>https://api.z.ai/api/monitor/usage/quota/limit</code>, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs; it was checked against a live Pro plan in October 2026.</p>
+<h3 id="how-do-i-check-quota-when-the-limit-is-already-used-up">How do I check quota when the limit is already used up?</h3>
+<p>Use <code>zai-usage</code> in a terminal, or <code>/zai-usage</code> inside <code>claude-z</code>. A normal slash command would fail, because it sends its output to the model, and the model is what's blocked. This repo's <code>/zai-usage</code> is answered by a local <code>UserPromptSubmit</code> hook instead, so it never calls the API.</p>
+<h3 id="what-does-error-1310-weekly-monthly-limit-exhausted-mean">What does error 1310 "Weekly/Monthly Limit Exhausted" mean?</h3>
+<p>Your plan's weekly credit limit is used up, and z.ai returns HTTP 429 until it resets. Claude Code may retry for a while, which looks like a hang. The reset time in z.ai's message is China Standard Time (UTC+8). <code>zai-usage</code> shows the same reset time converted to your local time.</p>
+<h3 id="does-web-search-work-in-claude-code-with-z-ai">Does web search work in Claude Code with z.ai?</h3>
+<p>Not the built-in one: Claude Code's WebSearch tool runs on Anthropic's servers. This setup blocks it and adds z.ai's <code>web-search-prime</code> and <code>web-reader</code> MCP servers instead. z.ai charges 1.2 credits per search or page read, according to its <a href="https://docs.z.ai/devpack/overview">plan overview</a>.</p>
+<h3 id="can-i-keep-my-anthropic-claude-subscription-alongside-z-ai">Can I keep my Anthropic Claude subscription alongside z.ai?</h3>
+<p>Yes. <code>claude</code> keeps using your Anthropic login and <code>~/.claude</code>. <code>claude-z</code> uses z.ai and its own <code>~/.claude-z</code> folder, with separate settings, history and MCP servers. Nothing is shared between them.</p>
+<h3 id="where-is-my-z-ai-api-key-stored">Where is my z.ai API key stored?</h3>
+<p>In <code>~/.config/zai/api_key</code>, with permissions limited to your user (<code>chmod 600</code> on Linux/macOS, an owner-only ACL on Windows). <code>claude-z</code> reads it at launch and passes it to Claude Code and the z.ai tools as environment variables. The MCP config only contains the <code>${ZAI_API_KEY}</code> placeholder.</p>
+<!-- END:faq -->
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td><code>Model "glm-5.3" isn't recognized</code></td><td>Model names lack <code>[1m]</code></td><td>Use the <code>[1m]</code> names; run <code>claude update</code> if they're rejected</td></tr>
+<tr><td>zsh: <code>no matches found: glm-5.3[1m]</code></td><td>Unquoted square brackets</td><td>Quote the model name</td></tr>
+<tr><td>401 or authentication error</td><td>Wrong key, or <code>ANTHROPIC_API_KEY</code> also set</td><td>Re-run the installer with the right key; unset <code>ANTHROPIC_API_KEY</code></td></tr>
+<tr><td>Seems to hang, or 429 <code>[1310]</code></td><td>Plan limit used up</td><td>Run <code>zai-usage</code> to see when it resets</td></tr>
+<tr><td>Web search fails</td><td>Built-in search can't run through z.ai</td><td>Use the z.ai MCP tools (the installer adds them)</td></tr>
+<tr><td>MCP server <em>Failed to connect</em></td><td>Started without <code>claude-z</code>, Node.js older than 22, or missing <code>cmd /c</code> on Windows</td><td>Start with <code>claude-z</code>; upgrade Node.js</td></tr>
+<tr><td>Status line says <code>quota unavailable</code></td><td>Network, <code>jq</code> missing, or empty key file</td><td>Run <code>~/.claude-z/zai-quota.sh --json</code> to see the raw reply</td></tr>
+<tr><td>PowerShell: "running scripts is disabled"</td><td>Execution policy</td><td><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></td></tr>
+</tbody>
+</table></div>
+
+<h2 id="tested">What has been tested</h2>
+<div class="table-wrap"><table>
+<thead><tr><th></th><th>Linux</th><th>macOS</th><th>Windows</th></tr></thead>
+<tbody>
+<tr><td><code>claude-z</code> and settings</td><td>Yes (Fedora, bash)</td><td>Not run on a Mac</td><td>Yes (PowerShell 7.4, on Linux)</td></tr>
+<tr><td>Installer: install, re-run, uninstall</td><td>Yes</td><td>Not run on a Mac</td><td>Yes (PowerShell 7.4, on Linux)</td></tr>
+<tr><td>Live session: status line, <code>/zai-usage</code>, MCP connected</td><td>Yes</td><td>Not run on a Mac</td><td>Yes (on Linux)</td></tr>
+<tr><td>Windows-only parts: <code>icacls</code>, <code>cmd /c</code>, PowerShell 5.1</td><td></td><td></td><td>Not run</td></tr>
+</tbody>
+</table></div>
+<p>Tested with Claude Code 2.1.301 to 2.1.305 and a GLM Coding Plan Pro account in October 2026. The macOS <code>stat</code> fallback was simulated. Reports from real Macs and Windows machines are welcome in <a href="https://github.com/yel-hadd/claude-code-zai/issues">GitHub issues</a>.</p>
+
+<h2 id="sources">Sources</h2>
+<ul>
+<li><a href="https://docs.z.ai/devpack/tool/claude">z.ai: Claude Code setup</a>: base URL, timeout, <code>[1m]</code> model names, auto-compact window</li>
+<li><a href="https://docs.z.ai/devpack/overview">z.ai: GLM Coding Plan overview</a>: models, MCP tools and credit costs</li>
+<li><a href="https://docs.z.ai/devpack/mcp/vision-mcp-server">z.ai: Vision MCP server</a>, <a href="https://docs.z.ai/devpack/mcp/search-mcp-server">Web Search MCP</a>, <a href="https://docs.z.ai/devpack/mcp/reader-mcp-server">Web Reader MCP</a></li>
+<li><a href="https://code.claude.com/docs">Claude Code docs</a>: settings, status line and hooks</li>
+</ul>
+</main>
+<footer>
+  <p><a href="https://github.com/yel-hadd/claude-code-zai">claude-code-zai</a> is MIT-licensed. Claude and Claude Code are trademarks of Anthropic. GLM and the GLM Coding Plan are products of Z.ai (Zhipu AI). This project is independent and not endorsed by either.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "deny": ["WebSearch"]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude-z/statusline.sh",
+    "padding": 0
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "~/.claude-z/hooks/zai-usage-hook.sh", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}

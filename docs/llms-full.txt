@@ -1,0 +1,986 @@
+# claude-code-zai: full guide for LLMs
+
+> Source: https://github.com/yel-hadd/claude-code-zai · Web: https://yel-hadd.github.io/claude-code-zai/
+
+# Claude Code with z.ai GLM-5.3: setup for Linux, macOS and Windows
+
+[![CI](https://github.com/yel-hadd/claude-code-zai/actions/workflows/ci.yml/badge.svg)](https://github.com/yel-hadd/claude-code-zai/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Run [Claude Code](https://code.claude.com/docs) on the [z.ai GLM Coding Plan](https://docs.z.ai/devpack/overview) with one command. You get a separate `claude-z` command that uses GLM-5.3 with its full 1M-token context, z.ai's web search, web reader and vision tools, and a status line showing your 5-hour and weekly quota. Your normal `claude` login stays untouched.
+
+**Last updated:** 2026-10-21 · **Guide:** [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/) · Not affiliated with Anthropic or Z.ai.
+
+```
+glm-5.3[1m] · ctx 12% · 5h 0% · wk 100% ↻Thu 20:47
+```
+
+## Quick start
+
+You need a GLM Coding Plan API key, [Claude Code](https://code.claude.com/docs/en/setup), and `jq` on Linux/macOS. Node.js 22+ is only needed for the vision tool.
+
+**Linux and macOS**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex
+```
+
+The installer asks for your key (hidden input), then open a new terminal and run `claude-z`. Prefer to let an AI agent do it? Paste [SETUP_PROMPT.md](SETUP_PROMPT.md) into Claude Code, Cursor or any coding agent.
+
+Re-running the installer is safe: it updates files and never duplicates anything. To remove it, run `install.sh --uninstall` or `install.ps1 -Uninstall` (your key is kept unless you add `--purge` / `-Purge`).
+
+## What you get
+
+| Piece | What it does |
+| --- | --- |
+| `claude-z` command | Starts Claude Code against z.ai with GLM-5.3 and a separate config folder (`~/.claude-z`) |
+| 1M context | Uses the `glm-5.3[1m]` model names, so Claude Code knows the real context size |
+| Web search + reader | z.ai's MCP servers replace Claude Code's built-in web search, which can't run through z.ai |
+| Vision | z.ai's image MCP server for screenshots and images |
+| Quota status line | Model, context used, 5-hour and weekly quota, reset time in your local time zone |
+| `zai-usage` | Full quota report in your terminal, without starting Claude Code |
+| `/zai-usage` | Same report inside a session; works even when the quota is used up |
+
+Your API key is stored in `~/.config/zai/api_key`, readable only by you. Config files reference it as `${ZAI_API_KEY}` and never contain the key itself.
+
+## The settings
+
+These are the environment variables `claude-z` sets. They are the same on every OS.
+
+| Variable | Value | Why |
+| --- | --- | --- |
+| `ANTHROPIC_BASE_URL` | `https://api.z.ai/api/anthropic` | z.ai's Anthropic-compatible endpoint |
+| `ANTHROPIC_AUTH_TOKEN` | your z.ai API key | Read from the key file at launch |
+| `ANTHROPIC_MODEL` | `glm-5.3[1m]` | Main model |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | `glm-5.3[1m]` | Used when you pick Opus in `/model` |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | `glm-5.3[1m]` | Used when you pick Sonnet in `/model` |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `glm-5.3-flash[1m]` | Fast model for background jobs |
+| `CLAUDE_CODE_SUBAGENT_MODEL` | `glm-5.3[1m]` | Model for subagents |
+| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | `1000000` | Compact near 1M tokens, not 200k |
+| `API_TIMEOUT_MS` | `3000000` | 50-minute timeout for long responses |
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` | No telemetry or update checks to Anthropic |
+| `CLAUDE_CONFIG_DIR` | `~/.claude-z` | Separate settings, history and MCP list |
+
+The base URL, timeout, model names and auto-compact window come from [z.ai's Claude Code guide](https://docs.z.ai/devpack/tool/claude).
+
+## Manual setup
+
+If you'd rather not run an installer, this is the core of what it installs. The full guide, with every script, is at [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/).
+
+<details>
+<summary><b>Linux and macOS:</b> <code>~/.claude-z/claude-z.sh</code>, sourced from <code>~/.bashrc</code> or <code>~/.zshrc</code></summary>
+
+```bash
+# claude-z: Claude Code on the z.ai GLM Coding Plan (bash and zsh).
+# Sourced from ~/.bashrc or ~/.zshrc. Key lives in ~/.config/zai/api_key (chmod 600).
+# https://github.com/yel-hadd/claude-code-zai
+
+unalias claude-z zai-usage 2>/dev/null
+
+function claude-z {
+  local key_file="$HOME/.config/zai/api_key"
+  if [ ! -s "$key_file" ]; then
+    echo "claude-z: missing z.ai key in $key_file" >&2
+    return 1
+  fi
+  local key; key="$(cat "$key_file")"
+  CLAUDE_CONFIG_DIR="$HOME/.claude-z" \
+  ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+  ANTHROPIC_AUTH_TOKEN="$key" \
+  ZAI_API_KEY="$key" \
+  API_TIMEOUT_MS=3000000 \
+  ANTHROPIC_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_OPUS_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_SONNET_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL='glm-5.3-flash[1m]' \
+  CLAUDE_CODE_SUBAGENT_MODEL='glm-5.3[1m]' \
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000 \
+  CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
+    claude "$@"
+}
+
+# z.ai quota without starting Claude Code (works even when a limit is exhausted)
+function zai-usage {
+  "$HOME/.claude-z/zai-quota.sh" --full
+}
+```
+
+</details>
+
+<details>
+<summary><b>Windows:</b> <code>~/.claude-z/claude-z.ps1</code>, dot-sourced from your PowerShell profile</summary>
+
+```powershell
+# claude-z: Claude Code on the z.ai GLM Coding Plan (PowerShell 5.1 and 7).
+# Dot-sourced from $PROFILE. Key lives in ~/.config/zai/api_key (owner-only ACL).
+# https://github.com/yel-hadd/claude-code-zai
+
+function claude-z {
+  $keyFile = Join-Path $HOME '.config\zai\api_key'
+  if (-not (Test-Path $keyFile) -or -not "$(Get-Content $keyFile -Raw)".Trim()) {
+    Write-Error "claude-z: missing z.ai key in $keyFile"; return
+  }
+  $key = (Get-Content $keyFile -Raw).Trim()
+  $vars = @{
+    CLAUDE_CONFIG_DIR                        = Join-Path $HOME '.claude-z'
+    ANTHROPIC_BASE_URL                       = 'https://api.z.ai/api/anthropic'
+    ANTHROPIC_AUTH_TOKEN                     = $key
+    ZAI_API_KEY                              = $key
+    API_TIMEOUT_MS                           = '3000000'
+    ANTHROPIC_MODEL                          = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_OPUS_MODEL             = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_SONNET_MODEL           = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_HAIKU_MODEL            = 'glm-5.3-flash[1m]'
+    CLAUDE_CODE_SUBAGENT_MODEL               = 'glm-5.3[1m]'
+    CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1'
+  }
+  $saved = @{}
+  foreach ($name in $vars.Keys) {
+    $saved[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+    [Environment]::SetEnvironmentVariable($name, $vars[$name], 'Process')
+  }
+  try { claude @args }
+  finally {
+    foreach ($name in $saved.Keys) {
+      [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process')
+    }
+  }
+}
+
+# z.ai quota without starting Claude Code (works even when a limit is exhausted)
+function zai-usage {
+  & (Join-Path $HOME '.claude-z\zai-quota.ps1') -Mode Full
+}
+```
+
+</details>
+
+<details>
+<summary><b>Settings:</b> <code>~/.claude-z/settings.json</code> (Linux/macOS paths)</summary>
+
+```json
+{
+  "permissions": {
+    "deny": ["WebSearch"]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude-z/statusline.sh",
+    "padding": 0
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "~/.claude-z/hooks/zai-usage-hook.sh", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+</details>
+
+Then add the z.ai tools. Keep the single quotes: they keep `${ZAI_API_KEY}` as literal text, which Claude Code fills in at startup.
+
+```bash
+claude-z mcp add -s user -t http web-search-prime https://api.z.ai/api/mcp/web_search_prime/mcp --header 'Authorization: Bearer ${ZAI_API_KEY}'
+claude-z mcp add -s user -t http web-reader https://api.z.ai/api/mcp/web_reader/mcp --header 'Authorization: Bearer ${ZAI_API_KEY}'
+claude-z mcp add -s user zai-mcp-server -e 'Z_AI_API_KEY=${ZAI_API_KEY}' -e Z_AI_MODE=ZAI -- npx -y @z_ai/mcp-server@latest
+```
+
+In PowerShell, write the separator as `'--'` and use `cmd /c npx` for the last one. PowerShell silently drops a bare `--`.
+
+## FAQ
+
+### How do I use Claude Code with z.ai?
+Point Claude Code at z.ai's Anthropic-compatible endpoint, `https://api.z.ai/api/anthropic`, and pass your GLM Coding Plan key as `ANTHROPIC_AUTH_TOKEN`. This repo wraps those settings in a `claude-z` command so they only apply when you want them, and your normal Claude Code login keeps working.
+
+### Why does Claude Code say "Model glm-5.3 isn't recognized · context assumed to be 200k tokens"?
+Claude Code doesn't know GLM's context size. Use the model names with the `[1m]` suffix (`glm-5.3[1m]`, `glm-5.3-flash[1m]`) and set `CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000`. Claude Code then reports a 1,000,000-token context window. If it says the `[1m]` model doesn't exist, run `claude update`.
+
+### Does GLM-5.3 get the full 1M context in Claude Code?
+Yes, with the `[1m]` model names. Tested on Claude Code 2.1.301 and later, which report `contextWindow: 1000000` for `glm-5.3[1m]`. Without the suffix, Claude Code assumes 200k and compacts the conversation far too early.
+
+### How do I check my z.ai GLM Coding Plan quota?
+Three ways: the status line at the bottom of `claude-z`, the `zai-usage` command in any terminal, and `/zai-usage` inside a session. All three read z.ai's quota endpoint, `https://api.z.ai/api/monitor/usage/quota/limit`, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs; it was checked against a live Pro plan in October 2026.
+
+### How do I check quota when the limit is already used up?
+Use `zai-usage` in a terminal, or `/zai-usage` inside `claude-z`. A normal slash command would fail, because it sends its output to the model, and the model is what's blocked. This repo's `/zai-usage` is answered by a local `UserPromptSubmit` hook instead, so it never calls the API.
+
+### What does error 1310 "Weekly/Monthly Limit Exhausted" mean?
+Your plan's weekly credit limit is used up, and z.ai returns HTTP 429 until it resets. Claude Code may retry for a while, which looks like a hang. The reset time in z.ai's message is China Standard Time (UTC+8). `zai-usage` shows the same reset time converted to your local time.
+
+### Does web search work in Claude Code with z.ai?
+Not the built-in one: Claude Code's WebSearch tool runs on Anthropic's servers. This setup blocks it and adds z.ai's `web-search-prime` and `web-reader` MCP servers instead. z.ai charges 1.2 credits per search or page read, according to its [plan overview](https://docs.z.ai/devpack/overview).
+
+### Can I keep my Anthropic Claude subscription alongside z.ai?
+Yes. `claude` keeps using your Anthropic login and `~/.claude`. `claude-z` uses z.ai and its own `~/.claude-z` folder, with separate settings, history and MCP servers. Nothing is shared between them.
+
+### Where is my z.ai API key stored?
+In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` on Linux/macOS, an owner-only ACL on Windows). `claude-z` reads it at launch and passes it to Claude Code and the z.ai tools as environment variables. The MCP config only contains the `${ZAI_API_KEY}` placeholder.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `Model "glm-5.3" isn't recognized` | Model names lack `[1m]` | Use the `[1m]` names; run `claude update` if they're rejected |
+| zsh: `no matches found: glm-5.3[1m]` | Unquoted square brackets | Quote the model name |
+| 401 or authentication error | Wrong key, or `ANTHROPIC_API_KEY` also set | Re-run the installer with the right key; unset `ANTHROPIC_API_KEY` |
+| Seems to hang, or 429 `[1310]` | Plan limit used up | Run `zai-usage` to see when it resets |
+| Web search fails | Built-in search can't run through z.ai | Use the z.ai MCP tools (the installer adds them) |
+| MCP server *Failed to connect* | Started without `claude-z`, Node.js < 22, or missing `cmd /c` on Windows | Start with `claude-z`; upgrade Node.js |
+| Status line says `quota unavailable` | Network, `jq` missing, or empty key file | Run `~/.claude-z/zai-quota.sh --json` to see the raw reply |
+| PowerShell: "running scripts is disabled" | Execution policy | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
+
+## What has been tested
+
+| | Linux | macOS | Windows |
+| --- | --- | --- | --- |
+| `claude-z` + settings | ✅ Fedora, bash | Not run on a Mac | ✅ PowerShell 7.4 (on Linux) |
+| Installer: install, re-run, uninstall | ✅ `install.sh` | Not run on a Mac | ✅ `install.ps1` under PowerShell 7.4 (on Linux) |
+| Live session: status line, `/zai-usage`, MCP connected | ✅ | Not run on a Mac | ✅ (on Linux) |
+| Windows-only parts: `icacls`, `cmd /c`, PowerShell 5.1 | | | Not run |
+
+Tested with Claude Code 2.1.301–2.1.305 and a GLM Coding Plan Pro account in October 2026. The macOS `stat` fallback was simulated. Reports from real Macs and Windows machines are welcome in [issues](https://github.com/yel-hadd/claude-code-zai/issues).
+
+## Sources
+
+- [z.ai: Claude Code setup](https://docs.z.ai/devpack/tool/claude): base URL, timeout, `[1m]` model names, auto-compact window
+- [z.ai: GLM Coding Plan overview](https://docs.z.ai/devpack/overview): models, MCP tools and credit costs
+- [z.ai: Vision MCP server](https://docs.z.ai/devpack/mcp/vision-mcp-server), [Web Search MCP](https://docs.z.ai/devpack/mcp/search-mcp-server), [Web Reader MCP](https://docs.z.ai/devpack/mcp/reader-mcp-server)
+- [Claude Code docs: settings, status line and hooks](https://code.claude.com/docs)
+
+## License
+
+[MIT](LICENSE). Claude and Claude Code are trademarks of Anthropic. GLM and the GLM Coding Plan are products of Z.ai (Zhipu AI). This project is independent and not endorsed by either.
+
+## Appendix: every script
+
+### scripts/claude-z.sh
+
+```bash
+# claude-z: Claude Code on the z.ai GLM Coding Plan (bash and zsh).
+# Sourced from ~/.bashrc or ~/.zshrc. Key lives in ~/.config/zai/api_key (chmod 600).
+# https://github.com/yel-hadd/claude-code-zai
+
+unalias claude-z zai-usage 2>/dev/null
+
+function claude-z {
+  local key_file="$HOME/.config/zai/api_key"
+  if [ ! -s "$key_file" ]; then
+    echo "claude-z: missing z.ai key in $key_file" >&2
+    return 1
+  fi
+  local key; key="$(cat "$key_file")"
+  CLAUDE_CONFIG_DIR="$HOME/.claude-z" \
+  ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+  ANTHROPIC_AUTH_TOKEN="$key" \
+  ZAI_API_KEY="$key" \
+  API_TIMEOUT_MS=3000000 \
+  ANTHROPIC_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_OPUS_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_SONNET_MODEL='glm-5.3[1m]' \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL='glm-5.3-flash[1m]' \
+  CLAUDE_CODE_SUBAGENT_MODEL='glm-5.3[1m]' \
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000 \
+  CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
+    claude "$@"
+}
+
+# z.ai quota without starting Claude Code (works even when a limit is exhausted)
+function zai-usage {
+  "$HOME/.claude-z/zai-quota.sh" --full
+}
+```
+
+### scripts/zai-quota.sh
+
+```bash
+#!/usr/bin/env bash
+# z.ai GLM Coding Plan quota, from https://api.z.ai/api/monitor/usage/quota/limit
+# Usage: zai-quota.sh [--short|--full|--json]   (cached 60s in ~/.cache/zai-quota.json)
+# https://github.com/yel-hadd/claude-code-zai
+mode="${1:---short}"
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/zai-quota.json"
+key="${ZAI_API_KEY:-$(cat "$HOME/.config/zai/api_key" 2>/dev/null)}"
+[ -n "$key" ] || { echo "z.ai: no key"; exit 0; }
+
+mkdir -p "$(dirname "$cache")"
+if [ ! -s "$cache" ] || [ $(( $(date +%s) - $(stat -c %Y "$cache" 2>/dev/null || stat -f %m "$cache") )) -ge 60 ]; then
+  tmp="$cache.$$"
+  if curl -s -m 5 https://api.z.ai/api/monitor/usage/quota/limit \
+       -H "Authorization: Bearer $key" -H "Accept-Language: en-US,en" -o "$tmp" \
+     && jq -e '.success == true' "$tmp" >/dev/null 2>&1; then
+    mv "$tmp" "$cache"
+  else
+    rm -f "$tmp"
+  fi
+fi
+[ -s "$cache" ] || { echo "z.ai: quota unavailable"; exit 0; }
+
+case "$mode" in
+  --json) cat "$cache" ;;
+  --short)
+    # unit 3 = hours, 6 = weeks, 5 = months; nextResetTime is epoch ms
+    jq -r '
+      def win: if .unit == 3 then "\(.number)h" elif .unit == 6 then "wk" elif .unit == 5 then "mo" else "u\(.unit)" end;
+      def reset: if .nextResetTime then " ↻" + ((.nextResetTime / 1000) | strflocaltime("%a %H:%M")) else "" end;
+      [.data.limits[] | select(.type != "TIME_LIMIT") | "\(win) \(.percentage)%" + (if .percentage >= 80 then reset else "" end)]
+      | join(" · ")' "$cache" ;;
+  --full)
+    jq -r '
+      def win: if .unit == 3 then "\(.number)-hour window" elif .unit == 6 then "Weekly" elif .unit == 5 then "Monthly" else "unit \(.unit) x\(.number)" end;
+      "z.ai plan: \(.data.level)",
+      (.data.limits[] |
+        "\(win) (\(.type)): \(.percentage)% used, \(.currentValue // 0) of \(.usage // "?"), \(.remaining // "?") left" +
+        (if .nextResetTime then ", resets \((.nextResetTime / 1000) | strflocaltime("%a %b %d %H:%M %Z"))" else "" end))' "$cache" ;;
+esac
+```
+
+### scripts/statusline.sh
+
+```bash
+#!/usr/bin/env bash
+# claude-z status line: model · context used · z.ai quota
+# https://github.com/yel-hadd/claude-code-zai
+input="$(cat)"
+model="$(jq -r '.model.display_name // .model.id // "GLM"' <<<"$input")"
+ctx="$(jq -r '.context_window.used_percentage // empty | floor' <<<"$input" 2>/dev/null)"
+quota="$("$(dirname "$0")/zai-quota.sh" --short)"
+printf '%s' "$model"
+[ -n "$ctx" ] && printf ' · ctx %s%%' "$ctx"
+printf ' · %s\n' "$quota"
+```
+
+### scripts/zai-usage-hook.sh
+
+```bash
+#!/usr/bin/env bash
+# UserPromptSubmit hook: answer /zai-usage locally, without calling the model,
+# so it still works when the z.ai quota is exhausted.
+# https://github.com/yel-hadd/claude-code-zai
+prompt="$(jq -r '.prompt // empty')"
+case "$prompt" in
+  /zai-usage|/zai-usage\ *)
+    out="$("$(dirname "$0")/../zai-quota.sh" --full 2>&1)"
+    jq -n --arg r "$out" '{decision: "block", reason: $r}'
+    ;;
+esac
+exit 0
+```
+
+### scripts/claude-z.ps1
+
+```powershell
+# claude-z: Claude Code on the z.ai GLM Coding Plan (PowerShell 5.1 and 7).
+# Dot-sourced from $PROFILE. Key lives in ~/.config/zai/api_key (owner-only ACL).
+# https://github.com/yel-hadd/claude-code-zai
+
+function claude-z {
+  $keyFile = Join-Path $HOME '.config\zai\api_key'
+  if (-not (Test-Path $keyFile) -or -not "$(Get-Content $keyFile -Raw)".Trim()) {
+    Write-Error "claude-z: missing z.ai key in $keyFile"; return
+  }
+  $key = (Get-Content $keyFile -Raw).Trim()
+  $vars = @{
+    CLAUDE_CONFIG_DIR                        = Join-Path $HOME '.claude-z'
+    ANTHROPIC_BASE_URL                       = 'https://api.z.ai/api/anthropic'
+    ANTHROPIC_AUTH_TOKEN                     = $key
+    ZAI_API_KEY                              = $key
+    API_TIMEOUT_MS                           = '3000000'
+    ANTHROPIC_MODEL                          = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_OPUS_MODEL             = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_SONNET_MODEL           = 'glm-5.3[1m]'
+    ANTHROPIC_DEFAULT_HAIKU_MODEL            = 'glm-5.3-flash[1m]'
+    CLAUDE_CODE_SUBAGENT_MODEL               = 'glm-5.3[1m]'
+    CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1'
+  }
+  $saved = @{}
+  foreach ($name in $vars.Keys) {
+    $saved[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+    [Environment]::SetEnvironmentVariable($name, $vars[$name], 'Process')
+  }
+  try { claude @args }
+  finally {
+    foreach ($name in $saved.Keys) {
+      [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process')
+    }
+  }
+}
+
+# z.ai quota without starting Claude Code (works even when a limit is exhausted)
+function zai-usage {
+  & (Join-Path $HOME '.claude-z\zai-quota.ps1') -Mode Full
+}
+```
+
+### scripts/zai-quota.ps1
+
+```powershell
+# z.ai GLM Coding Plan quota, from https://api.z.ai/api/monitor/usage/quota/limit
+# Usage: zai-quota.ps1 [-Mode Short|Full|Json]   (cached 60s in %TEMP%\zai-quota.json)
+# https://github.com/yel-hadd/claude-code-zai
+param([ValidateSet('Short', 'Full', 'Json')][string]$Mode = 'Short')
+
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+$key = $env:ZAI_API_KEY
+$keyFile = Join-Path $HOME '.config/zai/api_key'
+if (-not $key -and (Test-Path $keyFile)) { $key = "$(Get-Content $keyFile -Raw)".Trim() }
+if (-not $key) { 'z.ai: no key'; return }
+
+$tmpDir = if ($env:TEMP) { $env:TEMP } else { [IO.Path]::GetTempPath() }
+$cache = Join-Path $tmpDir 'zai-quota.json'
+if (-not (Test-Path $cache) -or ((Get-Date) - (Get-Item $cache).LastWriteTime).TotalSeconds -ge 60) {
+  try {
+    $r = Invoke-RestMethod -Uri 'https://api.z.ai/api/monitor/usage/quota/limit' -TimeoutSec 5 `
+      -Headers @{ Authorization = "Bearer $key"; 'Accept-Language' = 'en-US,en' }
+    if ($r.success) { $r | ConvertTo-Json -Depth 6 | Set-Content -Path $cache -Encoding UTF8 }
+  } catch { }
+}
+if (-not (Test-Path $cache)) { 'z.ai: quota unavailable'; return }
+if ($Mode -eq 'Json') { Get-Content $cache -Raw; return }
+
+$q = Get-Content $cache -Raw | ConvertFrom-Json
+
+# unit 3 = hours, 6 = weeks, 5 = months; nextResetTime is epoch ms
+function Format-Reset($limit, $format) {
+  [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$limit.nextResetTime).ToLocalTime().ToString($format)
+}
+
+if ($Mode -eq 'Short') {
+  $parts = foreach ($l in $q.data.limits) {
+    if ($l.type -eq 'TIME_LIMIT') { continue }
+    $w = switch ($l.unit) { 3 { "$($l.number)h" } 6 { 'wk' } 5 { 'mo' } default { "u$($l.unit)" } }
+    $s = "$w $($l.percentage)%"
+    if ($l.percentage -ge 80 -and $l.nextResetTime) { $s += ' resets ' + (Format-Reset $l 'ddd HH:mm') }
+    $s
+  }
+  $parts -join ' | '
+} else {
+  "z.ai plan: $($q.data.level)"
+  foreach ($l in $q.data.limits) {
+    $w = switch ($l.unit) { 3 { "$($l.number)-hour window" } 6 { 'Weekly' } 5 { 'Monthly' } default { "unit $($l.unit) x$($l.number)" } }
+    $used = if ($null -ne $l.currentValue) { $l.currentValue } else { 0 }
+    $line = "$w ($($l.type)): $($l.percentage)% used, $used of $($l.usage), $($l.remaining) left"
+    if ($l.nextResetTime) { $line += ', resets ' + (Format-Reset $l 'ddd MMM dd HH:mm zzz') }
+    $line
+  }
+}
+```
+
+### scripts/statusline.ps1
+
+```powershell
+# claude-z status line (Windows): model | context used | z.ai quota
+# https://github.com/yel-hadd/claude-code-zai
+try { $in = [Console]::In.ReadToEnd() | ConvertFrom-Json } catch { $in = $null }
+$parts = @(@($in.model.display_name) | Where-Object { $_ })
+if ($null -ne $in.context_window.used_percentage) {
+  $parts += "ctx $([math]::Floor($in.context_window.used_percentage))%"
+}
+$parts += & (Join-Path $PSScriptRoot 'zai-quota.ps1') -Mode Short
+$parts -join ' | '
+```
+
+### scripts/zai-usage-hook.ps1
+
+```powershell
+# UserPromptSubmit hook (Windows): answer /zai-usage locally, without calling the model,
+# so it still works when the z.ai quota is exhausted.
+# https://github.com/yel-hadd/claude-code-zai
+try { $in = [Console]::In.ReadToEnd() | ConvertFrom-Json } catch { exit 0 }
+if ("$($in.prompt)".Trim() -match '^/zai-usage(\s|$)') {
+  $out = (& (Join-Path $PSScriptRoot '../zai-quota.ps1') -Mode Full) -join "`n"
+  @{ decision = 'block'; reason = $out } | ConvertTo-Json -Compress
+}
+exit 0
+```
+
+### scripts/zai-usage.md
+
+```markdown
+---
+description: Show z.ai GLM Coding Plan quota (5-hour and weekly limits)
+---
+The `/zai-usage` hook should have answered this locally, without reaching you.
+Tell the user in one sentence that the claude-z `UserPromptSubmit` hook is not installed or not running,
+and that re-running the claude-code-zai installer fixes it. Do not add anything else.
+```
+
+### config/settings.json
+
+```json
+{
+  "permissions": {
+    "deny": ["WebSearch"]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude-z/statusline.sh",
+    "padding": 0
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "~/.claude-z/hooks/zai-usage-hook.sh", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### install.sh
+
+```bash
+#!/usr/bin/env bash
+# claude-code-zai installer for Linux and macOS.
+# Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
+# web reader and vision MCP tools, a quota status line and /zai-usage.
+#
+#   curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash
+#   ./install.sh [--no-mcp] [--ref TAG] | --uninstall [--purge]
+#
+# Non-interactive: ZAI_API_KEY=... ./install.sh
+# https://github.com/yel-hadd/claude-code-zai
+set -euo pipefail
+
+REPO="yel-hadd/claude-code-zai"
+REF="v1.0.0"
+DEST="$HOME/.claude-z"
+KEY_FILE="$HOME/.config/zai/api_key"
+MARK_BEGIN="# >>> claude-z >>>"
+MARK_END="# <<< claude-z <<<"
+FILES="scripts/claude-z.sh scripts/zai-quota.sh scripts/statusline.sh scripts/zai-usage-hook.sh scripts/zai-usage.md config/settings.json"
+MCP_NAMES="web-search-prime web-reader zai-mcp-server"
+
+action=do_install; purge=0; with_mcp=1
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --uninstall) action=do_uninstall ;;
+    --purge) purge=1 ;;
+    --no-mcp) with_mcp=0 ;;
+    --ref) REF="$2"; shift ;;
+    -h|--help) sed -n '2,10p' "$0" 2>/dev/null || true; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+say()  { printf '\033[1m==>\033[0m %s\n' "$*"; }
+warn() { printf '\033[33mwarning:\033[0m %s\n' "$*" >&2; }
+die()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+
+# rc files to manage: existing ~/.bashrc and ~/.zshrc, plus the one for the login shell
+rc_files() {
+  local shell_name; shell_name="$(basename "${SHELL:-bash}")"
+  local list=""
+  [ -f "$HOME/.bashrc" ] && list="$list $HOME/.bashrc"
+  [ -f "$HOME/.zshrc" ] && list="$list $HOME/.zshrc"
+  case "$shell_name" in
+    zsh) case "$list" in *"$HOME/.zshrc"*) ;; *) list="$list $HOME/.zshrc" ;; esac ;;
+    bash)
+      if [ "$(uname -s)" = Darwin ]; then
+        list="$list $HOME/.bash_profile"   # macOS Terminal starts login shells
+      else
+        case "$list" in *"$HOME/.bashrc"*) ;; *) list="$list $HOME/.bashrc" ;; esac
+      fi ;;
+  esac
+  echo "$list"
+}
+
+strip_block() {  # remove our marked block from file $1, in place
+  [ -f "$1" ] || return 0
+  grep -qF "$MARK_BEGIN" "$1" || return 0
+  local tmp; tmp="$(mktemp)"
+  awk -v b="$MARK_BEGIN" -v e="$MARK_END" '$0==b{skip=1;next} $0==e{skip=0;next} !skip' "$1" > "$tmp"
+  cat "$tmp" > "$1"; rm -f "$tmp"
+}
+
+zclaude() { CLAUDE_CONFIG_DIR="$DEST" claude "$@"; }
+
+mcp_exists() {
+  [ -f "$DEST/.claude.json" ] && jq -e --arg n "$1" '.mcpServers[$n] != null' "$DEST/.claude.json" >/dev/null 2>&1
+}
+
+do_uninstall() {
+  say "Removing claude-z"
+  for rc in $HOME/.bashrc $HOME/.zshrc $HOME/.bash_profile; do
+    if [ -f "$rc" ] && grep -qF "$MARK_BEGIN" "$rc"; then strip_block "$rc"; say "Cleaned $rc"; fi
+  done
+  if command -v claude >/dev/null; then
+    for n in $MCP_NAMES; do mcp_exists "$n" && zclaude mcp remove -s user "$n" >/dev/null 2>&1 && say "Removed MCP server $n"; done
+  fi
+  if [ -f "$DEST/settings.json" ] && command -v jq >/dev/null; then
+    local tmp; tmp="$(mktemp)"
+    jq '
+      (if (.statusLine.command // "") | test("claude-z/statusline") then del(.statusLine) else . end)
+      | (if .hooks.UserPromptSubmit then
+           .hooks.UserPromptSubmit |= map(select(([.hooks[]?.command] | any(test("zai-usage-hook"))) | not))
+           | (if (.hooks.UserPromptSubmit | length) == 0 then del(.hooks.UserPromptSubmit) else . end)
+           | (if (.hooks | length) == 0 then del(.hooks) else . end)
+         else . end)
+      | (if .permissions.deny then .permissions.deny -= ["WebSearch"] else . end)
+    ' "$DEST/settings.json" > "$tmp" && mv "$tmp" "$DEST/settings.json"
+    say "Cleaned $DEST/settings.json"
+  fi
+  rm -f "$DEST/claude-z.sh" "$DEST/zai-quota.sh" "$DEST/statusline.sh" \
+        "$DEST/hooks/zai-usage-hook.sh" "$DEST/commands/zai-usage.md"
+  rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/zai-quota.json"
+  if [ "$purge" = 1 ]; then rm -f "$KEY_FILE"; say "Deleted $KEY_FILE"; else say "Kept your key in $KEY_FILE (use --purge to delete it)"; fi
+  say "Done. $DEST is kept because it holds your claude-z history and settings."
+}
+
+do_install() {
+  command -v curl >/dev/null || die "curl is required"
+  command -v jq >/dev/null || die "jq is required. Install it first (Fedora: sudo dnf install jq, Debian/Ubuntu: sudo apt install jq, macOS: brew install jq)"
+  command -v claude >/dev/null || warn "Claude Code not found. Install it: curl -fsSL https://claude.ai/install.sh | bash"
+
+  # 1. key
+  mkdir -p "$(dirname "$KEY_FILE")"
+  if [ -n "${ZAI_API_KEY:-}" ]; then
+    (umask 077; printf '%s' "$ZAI_API_KEY" > "$KEY_FILE")
+    say "Saved key from ZAI_API_KEY to $KEY_FILE"
+  elif [ -s "$KEY_FILE" ]; then
+    say "Using existing key in $KEY_FILE"
+  else
+    [ -r /dev/tty ] || die "No terminal to ask for the key. Run with ZAI_API_KEY=... set."
+    printf 'Paste your z.ai API key (input hidden): ' > /dev/tty
+    local key; IFS= read -rs key < /dev/tty; echo > /dev/tty
+    key="$(printf '%s' "$key" | tr -d '[:space:]')"
+    [ -n "$key" ] || die "No key entered"
+    (umask 077; printf '%s' "$key" > "$KEY_FILE")
+    say "Saved key to $KEY_FILE"
+  fi
+  chmod 600 "$KEY_FILE"
+
+  # 2. files: from this clone if we are in one, else from GitHub at $REF
+  local src="" here
+  # shellcheck disable=SC2015
+  here="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+  [ -n "$here" ] && [ -f "$here/scripts/claude-z.sh" ] && src="$here"
+  stage="$(mktemp -d)"
+  trap 'rm -rf "$stage"' EXIT
+  for f in $FILES; do
+    mkdir -p "$stage/$(dirname "$f")"
+    if [ -n "$src" ]; then cp "$src/$f" "$stage/$f"
+    else curl -fsSL "https://raw.githubusercontent.com/$REPO/$REF/$f" -o "$stage/$f" || die "Download failed: $f"
+    fi
+  done
+  say "Installing scripts from ${src:-github.com/$REPO@$REF} into $DEST"
+  mkdir -p "$DEST/hooks" "$DEST/commands"
+  install -m 755 "$stage/scripts/zai-quota.sh" "$stage/scripts/statusline.sh" "$DEST/"
+  install -m 644 "$stage/scripts/claude-z.sh" "$DEST/"
+  install -m 755 "$stage/scripts/zai-usage-hook.sh" "$DEST/hooks/"
+  install -m 644 "$stage/scripts/zai-usage.md" "$DEST/commands/"
+
+  # 3. settings: merge, keeping whatever is already there
+  local settings="$DEST/settings.json" tmp; tmp="$(mktemp)"
+  [ -s "$settings" ] || echo '{}' > "$settings"
+  cp "$settings" "$settings.bak.claude-z"
+  jq --slurpfile t "$stage/config/settings.json" '
+    $t[0] as $t
+    | .permissions.deny = (((.permissions.deny // []) + $t.permissions.deny) | unique)
+    | (if (.statusLine == null) or ((.statusLine.command // "") | test("claude-z/statusline"))
+       then .statusLine = $t.statusLine else . end)
+    | ($t.hooks.UserPromptSubmit[0].hooks[0].command) as $cmd
+    | (if ([.hooks.UserPromptSubmit[]?.hooks[]?.command] | index($cmd))
+       then . else .hooks.UserPromptSubmit = ((.hooks.UserPromptSubmit // []) + $t.hooks.UserPromptSubmit) end)
+  ' "$settings" > "$tmp" && mv "$tmp" "$settings"
+  if ! jq -e '(.statusLine.command // "") | test("claude-z/statusline")' "$settings" >/dev/null; then
+    warn "Kept your existing statusLine in $settings; the z.ai quota status line was not enabled"
+  fi
+  say "Merged settings into $settings (backup: $settings.bak.claude-z)"
+
+  # 4. shell rc block
+  for rc in $(rc_files); do
+    [ -f "$rc" ] && cp "$rc" "$rc.bak.claude-z"
+    strip_block "$rc"
+    {
+      echo "$MARK_BEGIN"
+      echo '# claude-z: Claude Code on z.ai GLM. Managed by github.com/yel-hadd/claude-code-zai (install.sh --uninstall removes it)'
+      # shellcheck disable=SC2016
+      echo '[ -f "$HOME/.claude-z/claude-z.sh" ] && . "$HOME/.claude-z/claude-z.sh"'
+      echo "$MARK_END"
+    } >> "$rc"
+    say "Added claude-z to $rc"
+  done
+
+  # 5. MCP servers (key stays out of the config: ${ZAI_API_KEY} is expanded at runtime)
+  if [ "$with_mcp" = 1 ] && command -v claude >/dev/null; then
+    # shellcheck disable=SC2016
+    local bearer='Authorization: Bearer ${ZAI_API_KEY}' envkey='Z_AI_API_KEY=${ZAI_API_KEY}'
+    mcp_exists web-search-prime || zclaude mcp add -s user -t http web-search-prime \
+      https://api.z.ai/api/mcp/web_search_prime/mcp --header "$bearer" >/dev/null
+    mcp_exists web-reader || zclaude mcp add -s user -t http web-reader \
+      https://api.z.ai/api/mcp/web_reader/mcp --header "$bearer" >/dev/null
+    mcp_exists zai-mcp-server || zclaude mcp add -s user zai-mcp-server \
+      -e "$envkey" -e Z_AI_MODE=ZAI -- npx -y @z_ai/mcp-server@latest >/dev/null
+    say "MCP servers ready: $MCP_NAMES"
+  fi
+
+  # 6. checks
+  if command -v node >/dev/null; then
+    local major; major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
+    [ "$major" -ge 22 ] || warn "Node.js $major found; the z.ai vision tool needs Node.js 22 or newer"
+  else
+    warn "Node.js not found; the z.ai vision tool (zai-mcp-server) needs Node.js 22 or newer"
+  fi
+  say "Quota: $("$DEST/zai-quota.sh" --short)"
+  echo
+  say "Installed. Open a new terminal (or source your shell rc), then run: claude-z"
+  echo "    zai-usage          quota report, no Claude needed"
+  echo "    /zai-usage         same report inside claude-z, works even when the quota is used up"
+}
+
+"$action"
+```
+
+### install.ps1
+
+```powershell
+# claude-code-zai installer for Windows (PowerShell 5.1 and 7).
+# Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
+# web reader and vision MCP tools, a quota status line and /zai-usage.
+#
+#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex
+#   .\install.ps1 [-NoMcp] [-Ref TAG] | -Uninstall [-Purge]
+#   & ([scriptblock]::Create((irm <url>))) -Uninstall      # options when piping
+#
+# Non-interactive: $env:ZAI_API_KEY = '...'; .\install.ps1
+# https://github.com/yel-hadd/claude-code-zai
+param(
+  [switch]$Uninstall,
+  [switch]$Purge,
+  [switch]$NoMcp,
+  [string]$Ref = 'v1.0.0'
+)
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+$Repo = 'yel-hadd/claude-code-zai'
+$Dest = Join-Path $HOME '.claude-z'
+$KeyFile = Join-Path $HOME '.config/zai/api_key'
+$MarkBegin = '# >>> claude-z >>>'
+$MarkEnd = '# <<< claude-z <<<'
+$McpNames = 'web-search-prime', 'web-reader', 'zai-mcp-server'
+$OnWindows = ($PSVersionTable.PSEdition -eq 'Desktop') -or $IsWindows
+$PsExe = if ($OnWindows) { 'powershell' } else { 'pwsh' }
+$Files = @(
+  @{ Src = 'scripts/claude-z.ps1';       Dst = 'claude-z.ps1' },
+  @{ Src = 'scripts/zai-quota.ps1';      Dst = 'zai-quota.ps1' },
+  @{ Src = 'scripts/statusline.ps1';     Dst = 'statusline.ps1' },
+  @{ Src = 'scripts/zai-usage-hook.ps1'; Dst = 'hooks/zai-usage-hook.ps1' },
+  @{ Src = 'scripts/zai-usage.md';       Dst = 'commands/zai-usage.md' }
+)
+
+function Say($m) { Write-Host "==> $m" }
+function Warn($m) { Write-Warning $m }
+
+# Forward-slash absolute path: works whichever shell Claude Code uses to run commands
+function Fwd($p) { $p -replace '\\', '/' }
+$StatusCmd = "$PsExe -NoProfile -ExecutionPolicy Bypass -File $(Fwd (Join-Path $Dest 'statusline.ps1'))"
+$HookCmd = "$PsExe -NoProfile -ExecutionPolicy Bypass -File $(Fwd (Join-Path $Dest 'hooks/zai-usage-hook.ps1'))"
+
+function Get-ProfilePaths {
+  if ($OnWindows) {
+    $docs = [Environment]::GetFolderPath('MyDocuments')
+    @((Join-Path $docs 'WindowsPowerShell/profile.ps1'), (Join-Path $docs 'PowerShell/profile.ps1'))
+  } else {
+    @($PROFILE.CurrentUserAllHosts)
+  }
+}
+
+function Remove-Block($path) {
+  if (-not (Test-Path $path)) { return $false }
+  $lines = @(Get-Content $path)
+  if ($lines -notcontains $MarkBegin) { return $false }
+  $out = New-Object System.Collections.Generic.List[string]
+  $skip = $false
+  foreach ($l in $lines) {
+    if ($l -eq $MarkBegin) { $skip = $true; continue }
+    if ($l -eq $MarkEnd) { $skip = $false; continue }
+    if (-not $skip) { $out.Add($l) }
+  }
+  Set-Content -Path $path -Value $out
+  return $true
+}
+
+function Invoke-ZClaude {
+  $old = $env:CLAUDE_CONFIG_DIR
+  $env:CLAUDE_CONFIG_DIR = $Dest
+  try { & claude @args 2>&1 | Out-Null } finally { $env:CLAUDE_CONFIG_DIR = $old }
+}
+
+function Test-Mcp($name) {
+  $f = Join-Path $Dest '.claude.json'
+  if (-not (Test-Path $f)) { return $false }
+  $j = Get-Content $f -Raw | ConvertFrom-Json
+  return [bool]($j.mcpServers -and $j.mcpServers.PSObject.Properties[$name])
+}
+
+function Read-Settings {
+  $f = Join-Path $Dest 'settings.json'
+  if ((Test-Path $f) -and "$(Get-Content $f -Raw)".Trim()) { return (Get-Content $f -Raw | ConvertFrom-Json) }
+  return [pscustomobject]@{}
+}
+
+function Write-Settings($obj) {
+  # UTF-8 without BOM: Windows PowerShell 5.1's -Encoding UTF8 adds one, which JSON parsers may reject
+  $json = $obj | ConvertTo-Json -Depth 20
+  [IO.File]::WriteAllText((Join-Path $Dest 'settings.json'), $json, (New-Object Text.UTF8Encoding $false))
+}
+
+function Set-Prop($obj, $name, $value) {
+  if ($obj.PSObject.Properties[$name]) { $obj.$name = $value }
+  else { $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value }
+}
+
+function Test-OurHookEntry($entry) {
+  foreach ($h in @($entry.hooks)) { if ("$($h.command)" -match 'zai-usage-hook') { return $true } }
+  return $false
+}
+
+function Invoke-Uninstall {
+  Say 'Removing claude-z'
+  foreach ($p in Get-ProfilePaths) { if (Remove-Block $p) { Say "Cleaned $p" } }
+  if (Get-Command claude -ErrorAction SilentlyContinue) {
+    foreach ($n in $McpNames) { if (Test-Mcp $n) { Invoke-ZClaude mcp remove -s user $n; Say "Removed MCP server $n" } }
+  }
+  if (Test-Path (Join-Path $Dest 'settings.json')) {
+    $s = Read-Settings
+    if ($s.statusLine -and "$($s.statusLine.command)" -match 'claude-z[\\/]statusline') { $s.PSObject.Properties.Remove('statusLine') }
+    if ($s.hooks -and $s.hooks.UserPromptSubmit) {
+      $kept = @($s.hooks.UserPromptSubmit | Where-Object { -not (Test-OurHookEntry $_) })
+      if ($kept.Count) { $s.hooks.UserPromptSubmit = $kept } else { $s.hooks.PSObject.Properties.Remove('UserPromptSubmit') }
+      if (-not @($s.hooks.PSObject.Properties).Count) { $s.PSObject.Properties.Remove('hooks') }
+    }
+    if ($s.permissions -and $s.permissions.deny) { $s.permissions.deny = @($s.permissions.deny | Where-Object { $_ -ne 'WebSearch' }) }
+    Write-Settings $s
+    Say "Cleaned $(Join-Path $Dest 'settings.json')"
+  }
+  foreach ($f in $Files) { Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $Dest $f.Dst) }
+  $tmpDir = if ($env:TEMP) { $env:TEMP } else { [IO.Path]::GetTempPath() }
+  Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $tmpDir 'zai-quota.json')
+  if ($Purge) { Remove-Item -Force -ErrorAction SilentlyContinue $KeyFile; Say "Deleted $KeyFile" }
+  else { Say "Kept your key in $KeyFile (use -Purge to delete it)" }
+  Say "Done. $Dest is kept because it holds your claude-z history and settings."
+}
+
+function Invoke-Install {
+  if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
+    Warn 'Claude Code not found. Install it: irm https://claude.ai/install.ps1 | iex'
+  }
+
+  # 1. key
+  New-Item -ItemType Directory -Force (Split-Path $KeyFile) | Out-Null
+  if ($env:ZAI_API_KEY) {
+    Set-Content -Path $KeyFile -Value $env:ZAI_API_KEY.Trim() -NoNewline
+    Say "Saved key from ZAI_API_KEY to $KeyFile"
+  } elseif ((Test-Path $KeyFile) -and "$(Get-Content $KeyFile -Raw)".Trim()) {
+    Say "Using existing key in $KeyFile"
+  } else {
+    $sec = Read-Host 'Paste your z.ai API key (input hidden)' -AsSecureString
+    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec)
+    try { $key = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
+    $key = ($key -replace '\s', '')
+    if (-not $key) { throw 'No key entered' }
+    Set-Content -Path $KeyFile -Value $key -NoNewline
+    Say "Saved key to $KeyFile"
+  }
+  if ($OnWindows) { icacls $KeyFile /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null }
+  else { chmod 600 $KeyFile }
+
+  # 2. files: from this clone if we are in one, else from GitHub at $Ref
+  $src = if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot 'scripts/claude-z.ps1'))) { $PSScriptRoot } else { $null }
+  Say "Installing scripts from $(if ($src) { $src } else { "github.com/$Repo@$Ref" }) into $Dest"
+  foreach ($f in $Files) {
+    $target = Join-Path $Dest $f.Dst
+    New-Item -ItemType Directory -Force (Split-Path $target) | Out-Null
+    if ($src) { Copy-Item -Force (Join-Path $src $f.Src) $target }
+    else { Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/$Repo/$Ref/$($f.Src)" -OutFile $target }
+    if ($OnWindows) { Unblock-File $target }
+  }
+
+  # 3. settings: merge, keeping whatever is already there
+  $settingsFile = Join-Path $Dest 'settings.json'
+  if (Test-Path $settingsFile) { Copy-Item -Force $settingsFile "$settingsFile.bak.claude-z" }
+  $s = Read-Settings
+  if (-not $s.permissions) { Set-Prop $s 'permissions' ([pscustomobject]@{}) }
+  Set-Prop $s.permissions 'deny' (@(@($s.permissions.deny) + 'WebSearch' | Where-Object { $_ } | Select-Object -Unique))
+  if (-not $s.statusLine -or "$($s.statusLine.command)" -match 'claude-z[\\/]statusline') {
+    Set-Prop $s 'statusLine' ([pscustomobject]@{ type = 'command'; command = $StatusCmd; padding = 0 })
+  } else {
+    Warn "Kept your existing statusLine in $settingsFile; the z.ai quota status line was not enabled"
+  }
+  if (-not $s.hooks) { Set-Prop $s 'hooks' ([pscustomobject]@{}) }
+  $ups = @($s.hooks.UserPromptSubmit | Where-Object { $_ })
+  if (-not ($ups | Where-Object { Test-OurHookEntry $_ })) {
+    $ups += [pscustomobject]@{ hooks = @([pscustomobject]@{ type = 'command'; command = $HookCmd; timeout = 15 }) }
+  }
+  Set-Prop $s.hooks 'UserPromptSubmit' $ups
+  Write-Settings $s
+  Say "Merged settings into $settingsFile"
+
+  # 4. profile block
+  foreach ($p in Get-ProfilePaths) {
+    New-Item -ItemType Directory -Force (Split-Path $p) | Out-Null
+    if (Test-Path $p) { Copy-Item -Force $p "$p.bak.claude-z"; Remove-Block $p | Out-Null }
+    Add-Content -Path $p -Value @(
+      $MarkBegin,
+      '# claude-z: Claude Code on z.ai GLM. Managed by github.com/yel-hadd/claude-code-zai (install.ps1 -Uninstall removes it)',
+      '$czScript = Join-Path $HOME ''.claude-z/claude-z.ps1''; if (Test-Path $czScript) { . $czScript }; Remove-Variable czScript',
+      $MarkEnd
+    )
+    Say "Added claude-z to $p"
+  }
+  if ($OnWindows -and (Get-ExecutionPolicy) -in 'Restricted', 'AllSigned') {
+    Warn 'PowerShell blocks profile scripts here. Run once: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned'
+  }
+
+  # 5. MCP servers (key stays out of the config: ${ZAI_API_KEY} is expanded at runtime)
+  if (-not $NoMcp -and (Get-Command claude -ErrorAction SilentlyContinue)) {
+    $bearer = 'Authorization: Bearer ${ZAI_API_KEY}'
+    if (-not (Test-Mcp 'web-search-prime')) {
+      Invoke-ZClaude mcp add -s user -t http web-search-prime https://api.z.ai/api/mcp/web_search_prime/mcp --header $bearer
+    }
+    if (-not (Test-Mcp 'web-reader')) {
+      Invoke-ZClaude mcp add -s user -t http web-reader https://api.z.ai/api/mcp/web_reader/mcp --header $bearer
+    }
+    if (-not (Test-Mcp 'zai-mcp-server')) {
+      $launch = if ($OnWindows) { @('cmd', '/c', 'npx') } else { @('npx') }
+      $mcpArgs = @('mcp', 'add', '-s', 'user', 'zai-mcp-server', '-e', 'Z_AI_API_KEY=${ZAI_API_KEY}', '-e', 'Z_AI_MODE=ZAI', '--') +
+        $launch + @('-y', '@z_ai/mcp-server@latest')
+      Invoke-ZClaude @mcpArgs
+    }
+    Say "MCP servers ready: $($McpNames -join ', ')"
+  }
+
+  # 6. checks
+  if (Get-Command node -ErrorAction SilentlyContinue) {
+    $major = [int]((node -p "process.versions.node.split('.')[0]") 2>$null)
+    if ($major -lt 22) { Warn "Node.js $major found; the z.ai vision tool needs Node.js 22 or newer" }
+  } else {
+    Warn 'Node.js not found; the z.ai vision tool (zai-mcp-server) needs Node.js 22 or newer'
+  }
+  Say "Quota: $(& (Join-Path $Dest 'zai-quota.ps1') -Mode Short)"
+  Write-Host ''
+  Say 'Installed. Open a new PowerShell window, then run: claude-z'
+  Write-Host '    zai-usage          quota report, no Claude needed'
+  Write-Host '    /zai-usage         same report inside claude-z, works even when the quota is used up'
+}
+
+if ($Uninstall) { Invoke-Uninstall } else { Invoke-Install }
+```

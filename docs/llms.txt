@@ -1,0 +1,23 @@
+# claude-code-zai
+
+> Run Claude Code on the z.ai GLM Coding Plan (GLM-5.3, 1M-token context) on Linux, macOS and Windows. A one-command installer adds a separate `claude-z` command, z.ai's web search, web reader and vision MCP servers, a quota status line, and a `/zai-usage` command that works even when the quota is used up.
+
+Key facts:
+- Endpoint: `ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic`, key in `ANTHROPIC_AUTH_TOKEN`.
+- Models: `glm-5.3[1m]` (main, Opus, Sonnet, subagents) and `glm-5.3-flash[1m]` (Haiku). The `[1m]` suffix plus `CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000` fixes "Model glm-5.3 isn't recognized · context assumed to be 200k tokens".
+- Claude Code's built-in WebSearch does not work through z.ai; use z.ai's web-search-prime and web-reader MCP servers.
+- Quota: `GET https://api.z.ai/api/monitor/usage/quota/limit` (undocumented; Bearer key) returns 5-hour (unit 3) and weekly (unit 6) credit limits with `nextResetTime` in epoch ms.
+- Error 1310 "Weekly/Monthly Limit Exhausted" = HTTP 429; the reset time in the message is UTC+8.
+- Install: `curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.sh | bash` (Linux/macOS) or `irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.0.0/install.ps1 | iex` (Windows).
+
+## Docs
+
+- [Full guide](https://yel-hadd.github.io/claude-code-zai/): settings, manual setup, FAQ, troubleshooting
+- [Full guide as plain text, with every script](https://yel-hadd.github.io/claude-code-zai/llms-full.txt)
+- [README](https://github.com/yel-hadd/claude-code-zai#readme)
+- [Setup prompt for AI agents](https://github.com/yel-hadd/claude-code-zai/blob/main/SETUP_PROMPT.md)
+
+## Sources
+
+- [z.ai: Claude Code setup](https://docs.z.ai/devpack/tool/claude)
+- [z.ai: GLM Coding Plan overview](https://docs.z.ai/devpack/overview)

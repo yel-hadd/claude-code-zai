@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docs are in sync with scripts
+        run: python3 tools/sync.py --check
+      - name: bash -n and shellcheck
+        run: |
+          for f in install.sh scripts/*.sh; do bash -n "$f"; done
+          shellcheck -s bash install.sh scripts/*.sh
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $issues = @(Invoke-ScriptAnalyzer -Path install.ps1 -Severity Error) + @(Invoke-ScriptAnalyzer -Path scripts -Recurse -Severity Error)
+          $issues | Format-Table -AutoSize
+          if ($issues) { exit 1 }
+      - name: JSON, JSON-LD and sitemap are valid
+        run: |
+          python3 - <<'EOF'
+          import json, re, xml.dom.minidom, html.parser
+          json.load(open("config/settings.json"))
+          s = open("docs/index.html").read()
+          blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', s, re.S)
+          assert len(blocks) == 2, blocks
+          for b in blocks:
+              json.loads(b)
+          html.parser.HTMLParser().feed(s)
+          xml.dom.minidom.parse("docs/sitemap.xml")
+          print("ok")
+          EOF
+
+  install-unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            shell: /bin/bash
+          - os: macos-latest
+            shell: /bin/bash   # macOS ships bash 3.2
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install, re-run, check, uninstall (no Claude Code, dummy key)
+        env:
+          ZAI_API_KEY: dummy-key-for-ci
+        run: |
+          set -eu
+          export SHELL=${{ matrix.shell }}
+          touch ~/.bashrc
+          ${{ matrix.shell }} ./install.sh --no-mcp
+          ${{ matrix.shell }} ./install.sh --no-mcp
+          ls -l ~/.config/zai/api_key
+          for rc in ~/.bashrc ~/.bash_profile ~/.zshrc; do
+            [ -f "$rc" ] || continue
+            n=$(grep -c '>>> claude-z >>>' "$rc" || true)
+            echo "$rc: $n block(s)"; [ "$n" -le 1 ]
+          done
+          jq -e '.statusLine.command == "~/.claude-z/statusline.sh"' ~/.claude-z/settings.json
+          jq -e '[.hooks.UserPromptSubmit[].hooks[].command] | length == 1' ~/.claude-z/settings.json
+          ${{ matrix.shell }} -c '. ~/.claude-z/claude-z.sh; type claude-z zai-usage'
+          echo '{"prompt":"/zai-usage"}' | ~/.claude-z/hooks/zai-usage-hook.sh | jq -e '.decision == "block"'
+          [ -z "$(echo '{"prompt":"hello"}' | ~/.claude-z/hooks/zai-usage-hook.sh)" ]
+          echo '{"model":{"display_name":"glm-5.3[1m]"}}' | ~/.claude-z/statusline.sh
+          ${{ matrix.shell }} ./install.sh --uninstall --purge
+          if grep -q 'claude-z' ~/.bashrc; then echo "rc block not removed"; exit 1; fi
+          if [ -f ~/.config/zai/api_key ]; then echo "key not purged"; exit 1; fi
+
+  install-windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]   # Windows PowerShell 5.1 and PowerShell 7
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install, re-run, check, uninstall (no Claude Code, dummy key)
+        env:
+          ZAI_API_KEY: dummy-key-for-ci
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .\install.ps1 -NoMcp
+          .\install.ps1 -NoMcp
+          icacls "$HOME\.config\zai\api_key"
+          $docs = [Environment]::GetFolderPath('MyDocuments')
+          foreach ($p in "$docs\WindowsPowerShell\profile.ps1", "$docs\PowerShell\profile.ps1") {
+            $n = @(Select-String -Path $p -SimpleMatch '>>> claude-z >>>').Count
+            "$p : $n block(s)"; if ($n -ne 1) { throw "expected 1 block in $p" }
+          }
+          $s = Get-Content "$HOME\.claude-z\settings.json" -Raw | ConvertFrom-Json
+          if ($s.statusLine.command -notmatch 'statusline\.ps1') { throw 'statusLine not set' }
+          if (@($s.hooks.UserPromptSubmit).Count -ne 1) { throw 'hook missing or duplicated' }
+          . "$HOME\.claude-z\claude-z.ps1"
+          Get-Command claude-z, zai-usage | Format-Table Name, CommandType
+          $out = '{"prompt":"/zai-usage"}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.claude-z\hooks\zai-usage-hook.ps1"
+          if (($out | ConvertFrom-Json).decision -ne 'block') { throw "hook did not block: $out" }
+          $none = '{"prompt":"hello"}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.claude-z\hooks\zai-usage-hook.ps1"
+          if ($none) { throw "hook blocked a normal prompt: $none" }
+          '{"model":{"display_name":"glm-5.3[1m]"}}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.claude-z\statusline.ps1"
+          .\install.ps1 -Uninstall -Purge
+          if (Test-Path "$HOME\.config\zai\api_key") { throw 'key not purged' }

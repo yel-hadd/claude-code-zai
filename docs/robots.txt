@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yel-hadd.github.io/claude-code-zai/sitemap.xml
