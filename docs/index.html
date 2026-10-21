@@ -545,13 +545,13 @@ claude-z mcp add -s user zai-mcp-server -e 'Z_AI_API_KEY=${ZAI_API_KEY}' -e Z_AI
 <div class="table-wrap"><table>
 <thead><tr><th></th><th>Linux</th><th>macOS</th><th>Windows</th></tr></thead>
 <tbody>
-<tr><td><code>claude-z</code> and settings</td><td>Yes (Fedora, bash)</td><td>Not run on a Mac</td><td>Yes (PowerShell 7.4, on Linux)</td></tr>
-<tr><td>Installer: install, re-run, uninstall</td><td>Yes</td><td>Not run on a Mac</td><td>Yes (PowerShell 7.4, on Linux)</td></tr>
-<tr><td>Live session: status line, <code>/zai-usage</code>, MCP connected</td><td>Yes</td><td>Not run on a Mac</td><td>Yes (on Linux)</td></tr>
-<tr><td>Windows-only parts: <code>icacls</code>, <code>cmd /c</code>, PowerShell 5.1</td><td></td><td></td><td>Not run</td></tr>
+<tr><td>Installer: install, re-run, uninstall</td><td>Yes, by hand and in CI</td><td>Yes, in CI (built-in bash 3.2)</td><td>Yes, in CI (PowerShell 5.1 and 7, including <code>icacls</code>)</td></tr>
+<tr><td><code>claude-z</code>, <code>zai-usage</code>, <code>/zai-usage</code> hook, status line scripts</td><td>Yes, by hand and in CI</td><td>Yes, in CI</td><td>Yes, in CI</td></tr>
+<tr><td>Live Claude Code session: status line, <code>/zai-usage</code>, MCP connected</td><td>Yes (Fedora, bash)</td><td>Not run</td><td>Yes (PowerShell 7, on Linux)</td></tr>
+<tr><td>z.ai vision tool via <code>cmd /c npx</code></td><td></td><td></td><td>Not run</td></tr>
 </tbody>
 </table></div>
-<p>Tested with Claude Code 2.1.301 to 2.1.305 and a GLM Coding Plan Pro account in October 2026. The macOS <code>stat</code> fallback was simulated. Reports from real Macs and Windows machines are welcome in <a href="https://github.com/yel-hadd/claude-code-zai/issues">GitHub issues</a>.</p>
+<p>CI runs every installer on GitHub's Ubuntu, macOS and Windows machines with a dummy key and without Claude Code, so it covers the installers and scripts but not a live z.ai session. Live sessions were tested with Claude Code 2.1.301 to 2.1.305 and a GLM Coding Plan Pro account in October 2026. zsh hasn't been tested. Reports from real Macs and Windows machines are welcome in <a href="https://github.com/yel-hadd/claude-code-zai/issues">GitHub issues</a>.</p>
 
 <h2 id="sources">Sources</h2>
 <ul>

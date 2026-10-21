@@ -245,12 +245,12 @@ In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` o
 
 | | Linux | macOS | Windows |
 | --- | --- | --- | --- |
-| `claude-z` + settings | ✅ Fedora, bash | Not run on a Mac | ✅ PowerShell 7.4 (on Linux) |
-| Installer: install, re-run, uninstall | ✅ `install.sh` | Not run on a Mac | ✅ `install.ps1` under PowerShell 7.4 (on Linux) |
-| Live session: status line, `/zai-usage`, MCP connected | ✅ | Not run on a Mac | ✅ (on Linux) |
-| Windows-only parts: `icacls`, `cmd /c`, PowerShell 5.1 | | | Not run |
+| Installer: install, re-run, uninstall | ✅ by hand and in CI | ✅ in CI (built-in bash 3.2) | ✅ in CI (PowerShell 5.1 and 7, incl. `icacls`) |
+| `claude-z`, `zai-usage`, `/zai-usage` hook, status line scripts | ✅ by hand and in CI | ✅ in CI | ✅ in CI |
+| Live Claude Code session: status line, `/zai-usage`, MCP connected | ✅ Fedora, bash | Not run | ✅ PowerShell 7 (on Linux) |
+| z.ai vision tool via `cmd /c npx` | | | Not run |
 
-Tested with Claude Code 2.1.301–2.1.305 and a GLM Coding Plan Pro account in October 2026. The macOS `stat` fallback was simulated. Reports from real Macs and Windows machines are welcome in [issues](https://github.com/yel-hadd/claude-code-zai/issues).
+CI runs every installer on GitHub's Ubuntu, macOS and Windows machines with a dummy key and without Claude Code, so it covers the installers and scripts but not a live z.ai session. Live sessions were tested with Claude Code 2.1.301–2.1.305 and a GLM Coding Plan Pro account in October 2026. zsh hasn't been tested. Reports from real Macs and Windows machines are welcome in [issues](https://github.com/yel-hadd/claude-code-zai/issues).
 
 ## Sources
 
