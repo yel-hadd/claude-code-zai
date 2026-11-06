@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.0 (2026-11-06)
+
+- Fix auto mode blocking commands with "safety check is unavailable". Recent Claude Code versions ask Anthropic's servers to review auto mode actions, and z.ai doesn't answer that review. `claude-z` now sets `CLAUDE_CODE_AUTO_MODE_SERVER=0` so Claude Code runs the check itself, and `CLAUDE_CODE_AUTO_MODE_MODEL='glm-5.3[1m]'` to run it on GLM-5.3. Re-run the installer to update.
+- Installers now download `v1.2.0`.
+
 ## v1.1.0 (2026-10-21)
 
 - Guide site rebuilt as a page for people moving from a Claude subscription to the z.ai GLM Coding Plan: side-by-side comparison, how-to-switch steps, social preview image, favicon.

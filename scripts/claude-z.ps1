@@ -22,6 +22,8 @@ function claude-z {
     ANTHROPIC_DEFAULT_HAIKU_MODEL            = 'glm-5.3-flash[1m]'
     CLAUDE_CODE_SUBAGENT_MODEL               = 'glm-5.3[1m]'
     CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'
+    CLAUDE_CODE_AUTO_MODE_SERVER             = '0'
+    CLAUDE_CODE_AUTO_MODE_MODEL              = 'glm-5.3[1m]'
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1'
   }
   $saved = @{}

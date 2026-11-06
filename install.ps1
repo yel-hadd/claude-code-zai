@@ -2,7 +2,7 @@
 # Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
 # web reader and vision MCP tools, a quota status line and /zai-usage.
 #
-#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.ps1 | iex
 #   .\install.ps1 [-NoMcp] [-Ref TAG] | -Uninstall [-Purge]
 #   & ([scriptblock]::Create((irm <url>))) -Uninstall      # options when piping
 #
@@ -14,7 +14,7 @@ param(
   [switch]$Uninstall,
   [switch]$Purge,
   [switch]$NoMcp,
-  [string]$Ref = 'v1.1.0'
+  [string]$Ref = 'v1.2.0'
 )
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12

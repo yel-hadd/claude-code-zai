@@ -7,7 +7,7 @@ Run [Claude Code](https://code.claude.com/docs) on the [z.ai GLM Coding Plan](ht
 
 No GLM Coding Plan yet? [Get 10% off your first subscription](https://z.ai/subscribe?ic=BY27XR8RLD) (referral link, see the [disclosure](#referral-disclosure)).
 
-Last updated October 21, 2026. The full guide is at [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/). This project isn't affiliated with Anthropic or Z.ai.
+Last updated November 6, 2026. The full guide is at [yel-hadd.github.io/claude-code-zai](https://yel-hadd.github.io/claude-code-zai/). This project isn't affiliated with Anthropic or Z.ai.
 
 ```
 glm-5.3[1m] · ctx 12% · 5h 0% · wk 100% ↻Thu 20:47
@@ -20,13 +20,13 @@ You need a GLM Coding Plan API key ([subscribe here](https://z.ai/subscribe?ic=B
 **Linux and macOS**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.sh | bash
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.1.0/install.ps1 | iex
+irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.ps1 | iex
 ```
 
 The installer asks for your key without showing it on screen. When it finishes, open a new terminal and run `claude-z`. Prefer to let an AI agent do it? Paste [SETUP_PROMPT.md](SETUP_PROMPT.md) into Claude Code, Cursor or any coding agent.
@@ -83,11 +83,13 @@ These are the environment variables `claude-z` sets. They are the same on every 
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `glm-5.3-flash[1m]` | Fast model for background jobs |
 | `CLAUDE_CODE_SUBAGENT_MODEL` | `glm-5.3[1m]` | Model for subagents |
 | `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | `1000000` | Compact near 1M tokens, not 200k |
+| `CLAUDE_CODE_AUTO_MODE_SERVER` | `0` | Auto mode runs its safety check itself; z.ai doesn't answer Anthropic's server-side check |
+| `CLAUDE_CODE_AUTO_MODE_MODEL` | `glm-5.3[1m]` | Model for auto mode's safety check |
 | `API_TIMEOUT_MS` | `3000000` | 50-minute timeout for long responses |
 | `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` | No telemetry or update checks to Anthropic |
 | `CLAUDE_CONFIG_DIR` | `~/.claude-z` | Separate settings, history and MCP list |
 
-The base URL, timeout, model names and auto-compact window come from [z.ai's Claude Code guide](https://docs.z.ai/devpack/tool/claude).
+The base URL, timeout, model names and auto-compact window come from [z.ai's Claude Code guide](https://docs.z.ai/devpack/tool/claude). The two auto mode settings come from [Claude Code's permission modes docs](https://code.claude.com/docs/en/permission-modes#server-side-classifier-review).
 
 ## Manual setup
 
@@ -124,6 +126,8 @@ function claude-z {
   ANTHROPIC_DEFAULT_HAIKU_MODEL='glm-5.3-flash[1m]' \
   CLAUDE_CODE_SUBAGENT_MODEL='glm-5.3[1m]' \
   CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000 \
+  CLAUDE_CODE_AUTO_MODE_SERVER=0 \
+  CLAUDE_CODE_AUTO_MODE_MODEL='glm-5.3[1m]' \
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
     claude "$@"
 }
@@ -165,6 +169,8 @@ function claude-z {
     ANTHROPIC_DEFAULT_HAIKU_MODEL            = 'glm-5.3-flash[1m]'
     CLAUDE_CODE_SUBAGENT_MODEL               = 'glm-5.3[1m]'
     CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'
+    CLAUDE_CODE_AUTO_MODE_SERVER             = '0'
+    CLAUDE_CODE_AUTO_MODE_MODEL              = 'glm-5.3[1m]'
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1'
   }
   $saved = @{}
@@ -255,6 +261,9 @@ Use `zai-usage` in a terminal, or `/zai-usage` inside `claude-z`. A normal slash
 ### What does error 1310 "Weekly/Monthly Limit Exhausted" mean?
 Your plan's weekly credit limit is used up, and z.ai returns HTTP 429 until it resets. Claude Code may retry for a while, which looks like a hang. The reset time in z.ai's message is China Standard Time (UTC+8). `zai-usage` shows the same reset time converted to your local time.
 
+### Why does auto mode block commands with "safety check is unavailable"?
+Recent Claude Code versions ask Anthropic's servers to review auto mode actions, as part of the normal model requests. Through z.ai nobody answers that review, so Claude Code blocks every command that needs one. Read-only commands and edits in your project don't need review, which is why only some commands fail. Setting `CLAUDE_CODE_AUTO_MODE_SERVER=0` makes Claude Code run the check itself, on GLM-5.3 through z.ai. `claude-z` sets this from v1.2.0; re-run the installer to update.
+
 ### Does web search work in Claude Code with z.ai?
 Not the built-in one: Claude Code's WebSearch tool runs on Anthropic's servers. This setup blocks it and adds z.ai's `web-search-prime` and `web-reader` MCP servers instead. z.ai charges 1.2 credits per search or page read, according to its [plan overview](https://docs.z.ai/devpack/overview).
 
@@ -272,6 +281,7 @@ In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` o
 | zsh: `no matches found: glm-5.3[1m]` | Unquoted square brackets | Quote the model name |
 | 401 or authentication error | Wrong key, or `ANTHROPIC_API_KEY` also set | Re-run the installer with the right key; unset `ANTHROPIC_API_KEY` |
 | Seems to hang, or 429 `[1310]` | Plan limit used up | Run `zai-usage` to see when it resets |
+| Auto mode: "safety check is unavailable", commands blocked | Installed before v1.2.0 | Re-run the installer; it sets `CLAUDE_CODE_AUTO_MODE_SERVER=0` |
 | Web search fails | Built-in search can't run through z.ai | Use the z.ai MCP tools (the installer adds them) |
 | MCP server *Failed to connect* | Started without `claude-z`, Node.js < 22, or missing `cmd /c` on Windows | Start with `claude-z`; upgrade Node.js |
 | Status line says `quota unavailable` | Network, `jq` missing, or empty key file | Run `~/.claude-z/zai-quota.sh --json` to see the raw reply |
@@ -286,7 +296,7 @@ In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` o
 | Live Claude Code session: status line, `/zai-usage`, MCP connected | ✅ Fedora, bash | Not run | ✅ PowerShell 7 (on Linux) |
 | z.ai vision tool via `cmd /c npx` | | | Not run |
 
-CI runs every installer on GitHub's Ubuntu, macOS and Windows machines with a dummy key and without Claude Code, so it covers the installers and scripts but not a live z.ai session. Live sessions were tested with Claude Code 2.1.301–2.1.305 and a GLM Coding Plan Pro account in October 2026. zsh hasn't been tested. Reports from real Macs and Windows machines are welcome in [issues](https://github.com/yel-hadd/claude-code-zai/issues).
+CI runs every installer on GitHub's Ubuntu, macOS and Windows machines with a dummy key and without Claude Code, so it covers the installers and scripts but not a live z.ai session. Live sessions were tested with Claude Code 2.1.301–2.1.319 and a GLM Coding Plan Pro account in October 2026. zsh hasn't been tested. Reports from real Macs and Windows machines are welcome in [issues](https://github.com/yel-hadd/claude-code-zai/issues).
 
 ## Sources
 
