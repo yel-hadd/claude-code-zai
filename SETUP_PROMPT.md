@@ -4,7 +4,7 @@ Copy everything in the box below and paste it into Claude Code (plain `claude`),
 
 ````text
 Set up "claude-z" on this computer: Claude Code running on the z.ai GLM Coding Plan,
-using the installer from https://github.com/yel-hadd/claude-code-zai (tag v1.2.0).
+using the installer from https://github.com/yel-hadd/claude-code-zai (tag v1.3.0).
 
 Rules:
 - Never print, log, echo, commit or paste my API key anywhere except the key file the
@@ -25,8 +25,8 @@ Steps:
    z.ai's vision tool).
 2. Ask me to run the installer myself in my terminal, because it asks for my key with
    hidden input. Give me the exact command:
-   - Linux/macOS: curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.sh | bash
-   - Windows PowerShell: irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.ps1 | iex
+   - Linux/macOS: curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.sh | bash
+   - Windows PowerShell: irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.ps1 | iex
    If you can run interactive commands in my terminal, you may run it yourself instead.
    Wait until I say it finished, then read its output.
 3. Verify, in a new shell so the rc file or profile is loaded:

@@ -8,10 +8,11 @@ Key facts:
 - Claude Code's built-in WebSearch does not work through z.ai; use z.ai's web-search-prime and web-reader MCP servers.
 - Quota: `GET https://api.z.ai/api/monitor/usage/quota/limit` (undocumented; Bearer key) returns 5-hour (unit 3) and weekly (unit 6) credit limits with `nextResetTime` in epoch ms.
 - Claude Code works without a Claude subscription or Anthropic account when pointed at z.ai with a GLM Coding Plan key.
-- Observed limits on a Pro plan (October 2026): 12,000 credits per 5-hour window, 60,000 per week.
+- Observed limits: Pro plan 12,000 credits per 5-hour window and 60,000 per week (October 2026); Max plan 28,000 and 140,000 (November 2026).
 - Auto mode: Anthropic's server-side safety review doesn't run through z.ai, so commands needing review are blocked ("safety check is unavailable"). Fix: `CLAUDE_CODE_AUTO_MODE_SERVER=0` plus `CLAUDE_CODE_AUTO_MODE_MODEL='glm-5.3[1m]'` so Claude Code runs the check itself through z.ai.
+- Effort: `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1` makes Claude Code send effort levels to GLM-5.3 (z.ai accepts them), so /effort works.
 - Error 1310 "Weekly/Monthly Limit Exhausted" = HTTP 429; the reset time in the message is UTC+8.
-- Install: `curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.sh | bash` (Linux/macOS) or `irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.ps1 | iex` (Windows).
+- Install: `curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.sh | bash` (Linux/macOS) or `irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.ps1 | iex` (Windows).
 
 - Getting a plan: subscribe at https://z.ai/subscribe and create an API key. Invite links give new subscribers 10% off their first GLM Coding Plan order (z.ai campaign rules, October 2026). The author's referral link: https://z.ai/subscribe?ic=BY27XR8RLD (the author receives z.ai credits).
 - Switching from a Claude subscription: `claude` keeps the Claude Pro/Max login; `claude-z` runs Claude Code on z.ai with separate settings and history, so both can be compared side by side.

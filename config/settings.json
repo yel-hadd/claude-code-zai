@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "deny": ["WebSearch"]
+    "deny": ["WebSearch", "Read(~/.config/zai/**)"]
   },
   "statusLine": {
     "type": "command",

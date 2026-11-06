@@ -70,6 +70,8 @@ jobs:
           grep -q 'CLAUDE_CODE_AUTO_MODE_SERVER=0' ~/.claude-z/claude-z.sh   # auto mode needs the local classifier on z.ai
           grep -q "ANTHROPIC_MODEL='glm-5.3\[1m\]'" ~/.claude-z/claude-z.sh   # 1M context model names
           grep -q 'CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000' ~/.claude-z/claude-z.sh
+          grep -q 'CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1' ~/.claude-z/claude-z.sh
+          jq -e '.permissions.deny | index("Read(~/.config/zai/**)")' ~/.claude-z/settings.json
           echo '{"prompt":"/zai-usage"}' | ~/.claude-z/hooks/zai-usage-hook.sh | jq -e '.decision == "block"'
           [ -z "$(echo '{"prompt":"hello"}' | ~/.claude-z/hooks/zai-usage-hook.sh)" ]
           echo '{"model":{"display_name":"glm-5.3[1m]"}}' | ~/.claude-z/statusline.sh
@@ -106,10 +108,11 @@ jobs:
           $s = Get-Content "$HOME\.claude-z\settings.json" -Raw | ConvertFrom-Json
           if ($s.statusLine.command -notmatch 'statusline\.ps1') { throw 'statusLine not set' }
           if (@($s.hooks.UserPromptSubmit).Count -ne 1) { throw 'hook missing or duplicated' }
+          if (@($s.permissions.deny) -notcontains 'Read(~/.config/zai/**)') { throw 'key file deny rule missing' }
           . "$HOME\.claude-z\claude-z.ps1"
           Get-Command claude-z, zai-usage | Format-Table Name, CommandType
           if (-not (Select-String -Path "$HOME\.claude-z\claude-z.ps1" -SimpleMatch "CLAUDE_CODE_AUTO_MODE_SERVER             = '0'")) { throw 'auto mode server setting missing' }
-          foreach ($want in "ANTHROPIC_MODEL                          = 'glm-5.3[1m]'", "CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'") {
+          foreach ($want in "ANTHROPIC_MODEL                          = 'glm-5.3[1m]'", "CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'", "CLAUDE_CODE_ALWAYS_ENABLE_EFFORT         = '1'") {
             if (-not (Select-String -Path "$HOME\.claude-z\claude-z.ps1" -SimpleMatch $want)) { throw "1M context setting missing: $want" }
           }
           $out = '{"prompt":"/zai-usage"}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.claude-z\hooks\zai-usage-hook.ps1"

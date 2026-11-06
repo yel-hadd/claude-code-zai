@@ -3,7 +3,7 @@
 # Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
 # web reader and vision MCP tools, a quota status line and /zai-usage.
 #
-#   curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.sh | bash
 #   ./install.sh [--no-mcp] [--ref TAG] | --uninstall [--purge]
 #
 # Non-interactive: ZAI_API_KEY=... ./install.sh
@@ -13,7 +13,7 @@
 set -euo pipefail
 
 REPO="yel-hadd/claude-code-zai"
-REF="v1.2.0"
+REF="v1.3.0"
 PLAN_URL="https://z.ai/subscribe?ic=BY27XR8RLD"
 DEST="$HOME/.claude-z"
 KEY_FILE="$HOME/.config/zai/api_key"
@@ -88,7 +88,7 @@ do_uninstall() {
            | (if (.hooks.UserPromptSubmit | length) == 0 then del(.hooks.UserPromptSubmit) else . end)
            | (if (.hooks | length) == 0 then del(.hooks) else . end)
          else . end)
-      | (if .permissions.deny then .permissions.deny -= ["WebSearch"] else . end)
+      | (if .permissions.deny then .permissions.deny -= ["WebSearch", "Read(~/.config/zai/**)"] else . end)
     ' "$DEST/settings.json" > "$tmp" && mv "$tmp" "$DEST/settings.json"
     say "Cleaned $DEST/settings.json"
   fi

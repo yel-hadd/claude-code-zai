@@ -2,7 +2,7 @@
 # Sets up `claude-z`: Claude Code on the z.ai GLM Coding Plan, with z.ai web search,
 # web reader and vision MCP tools, a quota status line and /zai-usage.
 #
-#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.ps1 | iex
 #   .\install.ps1 [-NoMcp] [-Ref TAG] | -Uninstall [-Purge]
 #   & ([scriptblock]::Create((irm <url>))) -Uninstall      # options when piping
 #
@@ -14,7 +14,7 @@ param(
   [switch]$Uninstall,
   [switch]$Purge,
   [switch]$NoMcp,
-  [string]$Ref = 'v1.2.0'
+  [string]$Ref = 'v1.3.0'
 )
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -26,6 +26,7 @@ $KeyFile = Join-Path $HOME '.config/zai/api_key'
 $MarkBegin = '# >>> claude-z >>>'
 $MarkEnd = '# <<< claude-z <<<'
 $McpNames = 'web-search-prime', 'web-reader', 'zai-mcp-server'
+$DenyRules = 'WebSearch', 'Read(~/.config/zai/**)'
 $OnWindows = ($PSVersionTable.PSEdition -eq 'Desktop') -or $IsWindows
 $PsExe = if ($OnWindows) { 'powershell' } else { 'pwsh' }
 $Files = @(
@@ -117,7 +118,7 @@ function Invoke-Uninstall {
       if ($kept.Count) { $s.hooks.UserPromptSubmit = $kept } else { $s.hooks.PSObject.Properties.Remove('UserPromptSubmit') }
       if (-not @($s.hooks.PSObject.Properties).Count) { $s.PSObject.Properties.Remove('hooks') }
     }
-    if ($s.permissions -and $s.permissions.deny) { $s.permissions.deny = @($s.permissions.deny | Where-Object { $_ -ne 'WebSearch' }) }
+    if ($s.permissions -and $s.permissions.deny) { $s.permissions.deny = @($s.permissions.deny | Where-Object { $_ -notin $DenyRules }) }
     Write-Settings $s
     Say "Cleaned $(Join-Path $Dest 'settings.json')"
   }
@@ -170,7 +171,7 @@ function Invoke-Install {
   if (Test-Path $settingsFile) { Copy-Item -Force $settingsFile "$settingsFile.bak.claude-z" }
   $s = Read-Settings
   if (-not $s.permissions) { Set-Prop $s 'permissions' ([pscustomobject]@{}) }
-  Set-Prop $s.permissions 'deny' (@(@($s.permissions.deny) + 'WebSearch' | Where-Object { $_ } | Select-Object -Unique))
+  Set-Prop $s.permissions 'deny' (@(@($s.permissions.deny) + $DenyRules | Where-Object { $_ } | Select-Object -Unique))
   if (-not $s.statusLine -or "$($s.statusLine.command)" -match 'claude-z[\\/]statusline') {
     Set-Prop $s 'statusLine' ([pscustomobject]@{ type = 'command'; command = $StatusCmd; padding = 0 })
   } else {

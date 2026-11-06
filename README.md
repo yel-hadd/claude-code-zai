@@ -20,13 +20,13 @@ You need a GLM Coding Plan API key ([subscribe here](https://z.ai/subscribe?ic=B
 **Linux and macOS**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.sh | bash
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.2.0/install.ps1 | iex
+irm https://raw.githubusercontent.com/yel-hadd/claude-code-zai/v1.3.0/install.ps1 | iex
 ```
 
 The installer asks for your key without showing it on screen. When it finishes, open a new terminal and run `claude-z`. Prefer to let an AI agent do it? Paste [SETUP_PROMPT.md](SETUP_PROMPT.md) into Claude Code, Cursor or any coding agent.
@@ -44,6 +44,8 @@ Re-running the installer is safe: it updates files and never duplicates anything
 | Quota status line | Model, context used, 5-hour and weekly quota, reset time in your local time zone |
 | `zai-usage` | Full quota report in your terminal, without starting Claude Code |
 | `/zai-usage` | Same report inside a session; works even when the quota is used up |
+| `/effort` | Low to max reasoning effort for GLM-5.3, which Claude Code otherwise skips for non-Claude models |
+| Clear `/model` menu | Entries read GLM-5.3 and GLM-5.3-Flash instead of "Custom Opus model" |
 
 Your API key is stored in `~/.config/zai/api_key`, readable only by you. Config files reference it as `${ZAI_API_KEY}` and never contain the key itself.
 
@@ -85,6 +87,8 @@ These are the environment variables `claude-z` sets. They are the same on every 
 | `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | `1000000` | Compact near 1M tokens, not 200k |
 | `CLAUDE_CODE_AUTO_MODE_SERVER` | `0` | Auto mode runs its safety check itself; z.ai doesn't answer Anthropic's server-side check |
 | `CLAUDE_CODE_AUTO_MODE_MODEL` | `glm-5.3[1m]` | Model for auto mode's safety check |
+| `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT` | `1` | Sends effort levels to GLM, so `/effort` works |
+| `ANTHROPIC_DEFAULT_*_MODEL_NAME` and `_DESCRIPTION` | `GLM-5.3`, `GLM-5.3-Flash` | Labels in the `/model` menu |
 | `API_TIMEOUT_MS` | `3000000` | 50-minute timeout for long responses |
 | `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` | No telemetry or update checks to Anthropic |
 | `CLAUDE_CONFIG_DIR` | `~/.claude-z` | Separate settings, history and MCP list |
@@ -128,6 +132,13 @@ function claude-z {
   CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000 \
   CLAUDE_CODE_AUTO_MODE_SERVER=0 \
   CLAUDE_CODE_AUTO_MODE_MODEL='glm-5.3[1m]' \
+  CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1 \
+  ANTHROPIC_DEFAULT_OPUS_MODEL_NAME='GLM-5.3' \
+  ANTHROPIC_DEFAULT_SONNET_MODEL_NAME='GLM-5.3' \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME='GLM-5.3-Flash' \
+  ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION='z.ai GLM-5.3, 1M context (same model as Sonnet)' \
+  ANTHROPIC_DEFAULT_SONNET_MODEL_DESCRIPTION='z.ai GLM-5.3, 1M context' \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL_DESCRIPTION='z.ai GLM-5.3-Flash, used for background tasks' \
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
     claude "$@"
 }
@@ -171,6 +182,13 @@ function claude-z {
     CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'
     CLAUDE_CODE_AUTO_MODE_SERVER             = '0'
     CLAUDE_CODE_AUTO_MODE_MODEL              = 'glm-5.3[1m]'
+    CLAUDE_CODE_ALWAYS_ENABLE_EFFORT         = '1'
+    ANTHROPIC_DEFAULT_OPUS_MODEL_NAME        = 'GLM-5.3'
+    ANTHROPIC_DEFAULT_SONNET_MODEL_NAME      = 'GLM-5.3'
+    ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME       = 'GLM-5.3-Flash'
+    ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION   = 'z.ai GLM-5.3, 1M context (same model as Sonnet)'
+    ANTHROPIC_DEFAULT_SONNET_MODEL_DESCRIPTION = 'z.ai GLM-5.3, 1M context'
+    ANTHROPIC_DEFAULT_HAIKU_MODEL_DESCRIPTION  = 'z.ai GLM-5.3-Flash, used for background tasks'
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1'
   }
   $saved = @{}
@@ -201,7 +219,7 @@ function zai-usage {
 ```json
 {
   "permissions": {
-    "deny": ["WebSearch"]
+    "deny": ["WebSearch", "Read(~/.config/zai/**)"]
   },
   "statusLine": {
     "type": "command",
@@ -253,7 +271,7 @@ Claude Code doesn't know GLM's context size. Use the model names with the `[1m]`
 Yes, with the `[1m]` model names. Tested on Claude Code 2.1.301 and later, which report `contextWindow: 1000000` for `glm-5.3[1m]`. Without the suffix, Claude Code assumes 200k and compacts the conversation far too early.
 
 ### How do I check my z.ai GLM Coding Plan quota?
-Three ways: the status line at the bottom of `claude-z`, the `zai-usage` command in any terminal, and `/zai-usage` inside a session. All three read z.ai's quota endpoint, `https://api.z.ai/api/monitor/usage/quota/limit`, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs. On my Pro plan in October 2026 it reported 12,000 credits per 5-hour window and 60,000 per week.
+Three ways: the status line at the bottom of `claude-z`, the `zai-usage` command in any terminal, and `/zai-usage` inside a session. All three read z.ai's quota endpoint, `https://api.z.ai/api/monitor/usage/quota/limit`, and show the 5-hour and weekly credit limits with reset times in your local time zone. That endpoint isn't in z.ai's public docs. On my accounts it reported 12,000 credits per 5-hour window and 60,000 per week on the Pro plan (October 2026), and 28,000 and 140,000 on the Max plan (November 2026).
 
 ### How do I check quota when the limit is already used up?
 Use `zai-usage` in a terminal, or `/zai-usage` inside `claude-z`. A normal slash command would fail, because it sends its output to the model, and the model is what's blocked. This repo's `/zai-usage` is answered by a local `UserPromptSubmit` hook instead, so it never calls the API.
@@ -262,16 +280,22 @@ Use `zai-usage` in a terminal, or `/zai-usage` inside `claude-z`. A normal slash
 Your plan's weekly credit limit is used up, and z.ai returns HTTP 429 until it resets. Claude Code may retry for a while, which looks like a hang. The reset time in z.ai's message is China Standard Time (UTC+8). `zai-usage` shows the same reset time converted to your local time.
 
 ### Why does auto mode block commands with "safety check is unavailable"?
-Recent Claude Code versions ask Anthropic's servers to review auto mode actions, as part of the normal model requests. Through z.ai nobody answers that review, so Claude Code blocks every command that needs one. Read-only commands and edits in your project don't need review, which is why only some commands fail. Setting `CLAUDE_CODE_AUTO_MODE_SERVER=0` makes Claude Code run the check itself, on GLM-5.3 through z.ai. `claude-z` sets this from v1.2.0; re-run the installer to update.
+Recent Claude Code versions ask Anthropic's servers to review auto mode actions, as part of the normal model requests. Through z.ai nobody answers that review, so Claude Code blocks every command that needs one. Read-only commands and edits in your project don't need review, which is why only some commands fail. Setting `CLAUDE_CODE_AUTO_MODE_SERVER=0` makes Claude Code run the check itself, on GLM-5.3 through z.ai. `claude-z` sets this from v1.3.0; re-run the installer to update.
 
 ### Does web search work in Claude Code with z.ai?
 Not the built-in one: Claude Code's WebSearch tool runs on Anthropic's servers. This setup blocks it and adds z.ai's `web-search-prime` and `web-reader` MCP servers instead. z.ai charges 1.2 credits per search or page read, according to its [plan overview](https://docs.z.ai/devpack/overview).
+
+### Is GLM-5.3 as good as Claude for coding?
+I haven't benchmarked them, and it depends on your work. GLM-5.3 is a different model, so results differ on the same prompt. The practical test is to run `claude` and `claude-z` side by side on your own tasks for a few days. Nothing in `claude-z` touches your Claude setup, so you can compare before you change subscriptions.
+
+### Does /effort work with GLM-5.3?
+Yes, with `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1`, which `claude-z` sets from v1.3.0. Claude Code normally sends effort levels only to models it recognizes. z.ai accepts the setting, and in my tests higher effort produced longer reasoning (about 40 output tokens at low, 90 to 150 at high, on the same question).
 
 ### Can I keep my Anthropic Claude subscription alongside z.ai?
 Yes. `claude` keeps using your Anthropic login and `~/.claude`. `claude-z` uses z.ai and its own `~/.claude-z` folder, with separate settings, history and MCP servers. Nothing is shared between them.
 
 ### Where is my z.ai API key stored?
-In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` on Linux/macOS, an owner-only ACL on Windows). `claude-z` reads it at launch and passes it to Claude Code and the z.ai tools as environment variables. The MCP config only contains the `${ZAI_API_KEY}` placeholder.
+In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` on Linux/macOS, an owner-only ACL on Windows). `claude-z` reads it at launch and passes it to Claude Code and the z.ai tools as environment variables. The MCP config only contains the `${ZAI_API_KEY}` placeholder, and a deny rule (`Read(~/.config/zai/**)`) stops Claude from reading the key file. Commands Claude runs can still see the key in their environment; in tests, auto mode's safety check refused attempts to inspect it.
 
 ## Troubleshooting
 
@@ -281,7 +305,7 @@ In `~/.config/zai/api_key`, with permissions limited to your user (`chmod 600` o
 | zsh: `no matches found: glm-5.3[1m]` | Unquoted square brackets | Quote the model name |
 | 401 or authentication error | Wrong key, or `ANTHROPIC_API_KEY` also set | Re-run the installer with the right key; unset `ANTHROPIC_API_KEY` |
 | Seems to hang, or 429 `[1310]` | Plan limit used up | Run `zai-usage` to see when it resets |
-| Auto mode: "safety check is unavailable", commands blocked | Installed before v1.2.0 | Re-run the installer; it sets `CLAUDE_CODE_AUTO_MODE_SERVER=0` |
+| Auto mode: "safety check is unavailable", commands blocked | Installed before v1.3.0 | Re-run the installer; it sets `CLAUDE_CODE_AUTO_MODE_SERVER=0` |
 | Web search fails | Built-in search can't run through z.ai | Use the z.ai MCP tools (the installer adds them) |
 | MCP server *Failed to connect* | Started without `claude-z`, Node.js < 22, or missing `cmd /c` on Windows | Start with `claude-z`; upgrade Node.js |
 | Status line says `quota unavailable` | Network, `jq` missing, or empty key file | Run `~/.claude-z/zai-quota.sh --json` to see the raw reply |
