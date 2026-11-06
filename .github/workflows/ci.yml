@@ -68,6 +68,8 @@ jobs:
           jq -e '[.hooks.UserPromptSubmit[].hooks[].command] | length == 1' ~/.claude-z/settings.json
           ${{ matrix.shell }} -c '. ~/.claude-z/claude-z.sh; type claude-z zai-usage'
           grep -q 'CLAUDE_CODE_AUTO_MODE_SERVER=0' ~/.claude-z/claude-z.sh   # auto mode needs the local classifier on z.ai
+          grep -q "ANTHROPIC_MODEL='glm-5.3\[1m\]'" ~/.claude-z/claude-z.sh   # 1M context model names
+          grep -q 'CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000' ~/.claude-z/claude-z.sh
           echo '{"prompt":"/zai-usage"}' | ~/.claude-z/hooks/zai-usage-hook.sh | jq -e '.decision == "block"'
           [ -z "$(echo '{"prompt":"hello"}' | ~/.claude-z/hooks/zai-usage-hook.sh)" ]
           echo '{"model":{"display_name":"glm-5.3[1m]"}}' | ~/.claude-z/statusline.sh
@@ -107,6 +109,9 @@ jobs:
           . "$HOME\.claude-z\claude-z.ps1"
           Get-Command claude-z, zai-usage | Format-Table Name, CommandType
           if (-not (Select-String -Path "$HOME\.claude-z\claude-z.ps1" -SimpleMatch "CLAUDE_CODE_AUTO_MODE_SERVER             = '0'")) { throw 'auto mode server setting missing' }
+          foreach ($want in "ANTHROPIC_MODEL                          = 'glm-5.3[1m]'", "CLAUDE_CODE_AUTO_COMPACT_WINDOW          = '1000000'") {
+            if (-not (Select-String -Path "$HOME\.claude-z\claude-z.ps1" -SimpleMatch $want)) { throw "1M context setting missing: $want" }
+          }
           $out = '{"prompt":"/zai-usage"}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.claude-z\hooks\zai-usage-hook.ps1"
           if (($out | ConvertFrom-Json).decision -ne 'block') { throw "hook did not block: $out" }
           $none = '{"prompt":"hello"}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.claude-z\hooks\zai-usage-hook.ps1"
